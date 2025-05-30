@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>📊 Sipariş Analiz Paneli</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .chart-container {
+      width: 90%;
+      margin: auto;
+      margin-bottom: 50px;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h2>📊 Sipariş Analiz Paneli</h2>
+  <div class="chart-container">
+    <canvas id="kategoriChart"></canvas>
+  </div>
+  <div class="chart-container">
+    <canvas id="durumChart"></canvas>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBCbKtD6jPE653IYwtTWo2fH93JXX4MN74",
+      authDomain: "kibrissiparissistemi.firebaseapp.com",
+      projectId: "kibrissiparissistemi",
+      storageBucket: "kibrissiparissistemi.firebasestorage.app",
+      messagingSenderId: "263531733235",
+      appId: "1:263531733235:web:82efdf39ed758a22465786",
+      measurementId: "G-JK5S6L90Q5"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    db.collection("siparisler").get().then((querySnapshot) => {
+      const kategoriSayac = {};
+      const durumSayac = {};
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const kategori = data.kategori || "Bilinmiyor";
+        const durum = data.durum || "Hazırlanıyor";
+
+        kategoriSayac[kategori] = (kategoriSayac[kategori] || 0) + 1;
+        durumSayac[durum] = (durumSayac[durum] || 0) + 1;
+      });
+
+      new Chart(document.getElementById("kategoriChart"), {
+        type: 'bar',
+        data: {
+          labels: Object.keys(kategoriSayac),
+          datasets: [{
+            label: 'Kategoriye Göre Sipariş Sayısı',
+            data: Object.values(kategoriSayac),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            title: {
+              display: true,
+              text: '📦 Kategorilere Göre Siparişler'
+            }
+          }
+        }
+      });
+
+      new Chart(document.getElementById("durumChart"), {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(durumSayac),
+          datasets: [{
+            label: 'Durum Dağılımı',
+            data: Object.values(durumSayac),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: '🚚 Sipariş Durumlarına Göre Dağılım'
+            }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
