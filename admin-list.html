@@ -9,18 +9,34 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f8f9fa;
+      background: #eef1f5;
       padding: 20px;
     }
     h2 {
       text-align: center;
-      margin-bottom: 10px;
+      color: #333;
+    }
+    .panel-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .panel-header input[type="text"], .panel-header input[type="date"] {
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
     }
     #toplamTutar, #kategoriToplamlari {
       text-align: center;
       font-size: 18px;
       margin-bottom: 10px;
-      color: #28a745;
+      background: #dff0d8;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      color: #3c763d;
       font-weight: bold;
     }
     button {
@@ -31,10 +47,6 @@
       background-color: #007BFF;
       color: white;
       cursor: pointer;
-    }
-    input[type="text"], input[type="date"] {
-      padding: 5px;
-      margin: 5px;
     }
     .siparis-kart {
       background: #fff;
@@ -61,21 +73,30 @@
     .kargo { background-color: #17a2b8; color: #fff; }
     .teslim { background-color: #28a745; color: #fff; }
     .sil { background-color: #dc3545; color: #fff; }
+    #bildirimAlani {
+      text-align: center;
+      background: #fff3cd;
+      color: #856404;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      font-weight: bold;
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-<h2>Sipariş Listesi</h2>
-<div style="text-align:center">
-  <input type="text" id="arama" placeholder="Ara: kategori, teslimat, durum..." oninput="filtreleSiparisler()">
+<h2>📋 Sipariş Yönetim Paneli</h2>
+<div class="panel-header">
+  <input type="text" id="arama" placeholder="🔍 Ara: kategori, teslimat, durum..." oninput="filtreleSiparisler()">
   <input type="date" id="baslangicTarihi" onchange="filtreleSiparisler()">
   <input type="date" id="bitisTarihi" onchange="filtreleSiparisler()">
-</div>
-<div id="toplamTutar">💰 Toplam Tutar: 0 ₺</div>
-<div id="kategoriToplamlari"></div>
-<div style="text-align:center">
   <button onclick="excelIndir()">📥 Excel’e Aktar</button>
 </div>
+<div id="bildirimAlani">🔔 Yeni sipariş alındı!</div>
+<div id="toplamTutar">💰 Toplam Tutar: 0 ₺</div>
+<div id="kategoriToplamlari"></div>
 <div id="siparisListesi"></div>
 
 <audio id="bildirimSesi" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
@@ -97,6 +118,7 @@
   const toplamDiv = document.getElementById("toplamTutar");
   const kategoriDiv = document.getElementById("kategoriToplamlari");
   const ses = document.getElementById("bildirimSesi");
+  const bildirimAlani = document.getElementById("bildirimAlani");
 
   let siparisVerileri = [];
 
@@ -106,7 +128,11 @@
     let toplam = 0;
     const kategoriToplam = {};
     snapshot.docChanges().forEach(change => {
-      if (change.type === "added") ses.play();
+      if (change.type === "added") {
+        ses.play();
+        bildirimAlani.style.display = "block";
+        setTimeout(() => { bildirimAlani.style.display = "none" }, 3000);
+      }
     });
 
     snapshot.forEach((doc) => {
