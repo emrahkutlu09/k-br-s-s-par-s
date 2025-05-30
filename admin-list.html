@@ -43,6 +43,7 @@
     .hazir { background-color: #ffc107; color: #000; }
     .kargo { background-color: #17a2b8; color: #fff; }
     .teslim { background-color: #28a745; color: #fff; }
+    .sil { background-color: #dc3545; color: #fff; }
   </style>
 </head>
 <body>
@@ -88,6 +89,7 @@
           <button class="hazir" onclick="durumDegistir('${doc.id}', 'Hazırlanıyor')">Hazırlanıyor</button>
           <button class="kargo" onclick="durumDegistir('${doc.id}', 'Kargoda')">Kargoda</button>
           <button class="teslim" onclick="durumDegistir('${doc.id}', 'Teslim Edildi')">Teslim Edildi</button>
+          <button class="sil" onclick="siparisSil('${doc.id}')">🗑 Sil</button>
         </div>
       `;
       liste.appendChild(kart);
@@ -98,6 +100,17 @@
     db.collection("siparisler").doc(id).update({ durum: yeniDurum }).then(() => {
       document.getElementById("durum-" + id).innerText = yeniDurum;
     });
+  }
+
+  function siparisSil(id) {
+    const onay = confirm("Bu siparişi silmek istediğinize emin misiniz?");
+    if (onay) {
+      db.collection("siparisler").doc(id).delete().then(() => {
+        alert("Sipariş silindi.");
+      }).catch((error) => {
+        alert("Hata oluştu: " + error);
+      });
+    }
   }
 </script>
 
