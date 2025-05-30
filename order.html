@@ -40,7 +40,6 @@
 </form>
 
 <script>
-  // Firebase yapılandırması
   const firebaseConfig = {
     apiKey: "AIzaSyBCbKtD6jPE653IYwtTWo2fH93JXX4MN74",
     authDomain: "kibrissiparissistemi.firebaseapp.com",
@@ -51,39 +50,51 @@
     measurementId: "G-JK5S6L90Q5"
   };
 
-  // Firebase başlat
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // Sayfa yüklendiğinde ücret hesapla
-  window.addEventListener("DOMContentLoaded", fiyatHesapla);
+  const fiyatInput = document.getElementById("fiyat");
+  const kategoriSelect = document.getElementById("kategori");
+  const sonucDiv = document.getElementById("sonuc");
 
-  // Fiyat veya kategori değiştiğinde yeniden hesapla
-  document.getElementById("fiyat").addEventListener("input", fiyatHesapla);
-  document.getElementById("kategori").addEventListener("change", fiyatHesapla);
+  fiyatInput.addEventListener("input", fiyatHesapla);
+  kategoriSelect.addEventListener("change", fiyatHesapla);
 
   function fiyatHesapla() {
-    const fiyat = parseFloat(document.getElementById("fiyat").value);
-    const kategori = document.getElementById("kategori").value;
+    const fiyat = parseFloat(fiyatInput.value);
+    const kategori = kategoriSelect.value;
+
+    if (isNaN(fiyat) || kategori === "") {
+      sonucDiv.innerText = "Toplam Ücret: ₺0";
+      return;
+    }
+
     let oran = 0;
-    switch(kategori) {
+    switch (kategori) {
       case "mobilya": oran = 0.70; break;
       case "elektronik": oran = 0.65; break;
       case "giyim":
       case "kozmetik": oran = 0.50; break;
     }
-    const toplam = !isNaN(fiyat) ? Math.round(fiyat * (1 + oran)) : 0;
-    document.getElementById("sonuc").innerText = `Toplam Ücret: ₺${toplam}`;
+
+    const toplam = Math.round(fiyat * (1 + oran));
+    sonucDiv.innerText = `Toplam Ücret: ₺${toplam}`;
   }
 
-  // Sipariş gönderildiğinde Firestore'a kaydet
   document.getElementById("siparisForm").addEventListener("submit", function(e) {
     e.preventDefault();
+
     const urunLink = document.getElementById("urunLink").value;
-    const fiyat = parseFloat(document.getElementById("fiyat").value);
-    const kategori = document.getElementById("kategori").value;
+    const fiyat = parseFloat(fiyatInput.value);
+    const kategori = kategoriSelect.value;
     const teslimat = document.getElementById("teslimat").value;
-    const oran = kategori === "mobilya" ? 0.70 : kategori === "elektronik" ? 0.65 : 0.50;
+
+    if (isNaN(fiyat) || kategori === "") {
+      alert("Lütfen geçerli bir fiyat ve kategori giriniz.");
+      return;
+    }
+
+    let oran = kategori === "mobilya" ? 0.70 : kategori === "elektronik" ? 0.65 : 0.50;
     const toplam = Math.round(fiyat * (1 + oran));
 
     db.collection("siparisler").add({
@@ -94,14 +105,15 @@
       toplam,
       zaman: new Date()
     }).then(() => {
-      alert("Sipariş başarıyla kaydedildi!");
+      alert("✅ Sipariş başarıyla kaydedildi!");
       document.getElementById("siparisForm").reset();
-      document.getElementById("sonuc").innerText = "Toplam Ücret: ₺0";
+      sonucDiv.innerText = "Toplam Ücret: ₺0";
     }).catch((error) => {
-      alert("Hata oluştu: " + error.message);
+      alert("❌ Hata oluştu: " + error.message);
     });
   });
 </script>
 
 </body>
 </html>
+
