@@ -2,25 +2,28 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
   <title>Admin Paneli - Sipariş Listesi</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f8f9fa;
       padding: 20px;
     }
-    .sil {
-  background-color: #dc3545;
-  color: #fff;
-}
-
     h2 {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 6px 12px;
+      margin-bottom: 20px;
+      border: none;
+      border-radius: 4px;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
     }
     .siparis-kart {
       background: #fff;
@@ -56,8 +59,7 @@
 <body>
 
 <h2>Sipariş Listesi</h2>
-  <button onclick="excelIndir()" style="margin-bottom: 20px;">📥 Excel’e Aktar</button>
-
+<button onclick="excelIndir()">📥 Excel’e Aktar</button>
 <div id="siparisListesi"></div>
 
 <script>
@@ -121,31 +123,30 @@
       });
     }
   }
-</script>
+
   function excelIndir() {
-  db.collection("siparisler").get().then((querySnapshot) => {
-    const data = [];
-    querySnapshot.forEach((doc) => {
-      const s = doc.data();
-      const zaman = s.zaman.toDate().toLocaleString("tr-TR");
-      data.push({
-        "Ürün Linki": s.urunLink,
-        "Fiyat (₺)": s.fiyat,
-        "Kategori": s.kategori,
-        "Teslimat": s.teslimat,
-        "Toplam (₺)": s.toplam,
-        "Durum": s.durum || "Hazırlanıyor",
-        "Tarih": zaman
+    db.collection("siparisler").get().then((querySnapshot) => {
+      const data = [];
+      querySnapshot.forEach((doc) => {
+        const s = doc.data();
+        const zaman = s.zaman.toDate().toLocaleString("tr-TR");
+        data.push({
+          "Ürün Linki": s.urunLink,
+          "Fiyat (₺)": s.fiyat,
+          "Kategori": s.kategori,
+          "Teslimat": s.teslimat,
+          "Toplam (₺)": s.toplam,
+          "Durum": s.durum || "Hazırlanıyor",
+          "Tarih": zaman
+        });
       });
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Siparişler");
+      XLSX.writeFile(wb, "siparisler.xlsx");
     });
-
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Siparişler");
-    XLSX.writeFile(wb, "siparisler.xlsx");
-  });
-}
-
+  }
+</script>
 
 </body>
 </html>
