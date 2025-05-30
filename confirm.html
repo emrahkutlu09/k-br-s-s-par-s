@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Siparişi Onayla - Kıbrıs Sipariş Sistemi</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f4f4f4;
+      padding: 40px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    input, select {
+      width: 100%;
+      margin-bottom: 20px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #28a745;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #218838;
+    }
+    .info-box {
+      background: #f1f1f1;
+      padding: 15px;
+      border-left: 4px solid #007BFF;
+      margin-bottom: 25px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Siparişi Onayla</h2>
+
+    <div class="info-box">
+      <strong>Ürün Linki:</strong> https://trendyol.com/ürün-linki <br>
+      <strong>Fiyat (₺):</strong> 1000 <br>
+      <strong>Kategori:</strong> Mobilya <br>
+      <strong>Teslimat Tipi:</strong> Eve Teslim <br>
+      <strong>Hesaplanan Toplam Ücret:</strong> ₺1700
+    </div>
+
+    <form action="#" method="post">
+      <input type="text" name="sipariskodu" placeholder="Sipariş Kodu (örn. 101-1)" required>
+
+      <select name="odeme" required>
+        <option value="">Ödeme Seçeneği Seçin</option>
+        <option value="havale">Havale / EFT</option>
+        <option value="kapida">Kapıda Ödeme</option>
+      </select>
+
+      <button type="submit">Siparişi Onaylıyorum</button>
+    </form>
+  </div>
+
+</body>
+</html>
