@@ -2,21 +2,19 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Paneli - Liste Görünüm</title>
+  <title>Admin Paneli - Sipariş Listesi</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f0f2f5;
+      background: #f8f9fa;
       padding: 20px;
     }
-
     h2 {
       text-align: center;
       margin-bottom: 30px;
     }
-
     .siparis-kart {
       background: #fff;
       border-left: 6px solid #007BFF;
@@ -25,20 +23,16 @@
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-
     .siparis-kart p {
       margin: 5px 0;
     }
-
     .siparis-kart a {
       color: #007BFF;
       text-decoration: none;
     }
-
     .siparis-kart a:hover {
       text-decoration: underline;
     }
-
     .durum-btns button {
       margin-right: 5px;
       padding: 4px 8px;
@@ -46,7 +40,6 @@
       border-radius: 4px;
       cursor: pointer;
     }
-
     .hazir { background-color: #ffc107; color: #000; }
     .kargo { background-color: #17a2b8; color: #fff; }
     .teslim { background-color: #28a745; color: #fff; }
@@ -55,7 +48,6 @@
 <body>
 
 <h2>Sipariş Listesi</h2>
-
 <div id="siparisListesi"></div>
 
 <script>
@@ -82,7 +74,6 @@
 
       const kart = document.createElement("div");
       kart.className = "siparis-kart";
-
       kart.innerHTML = `
         <p><strong>📦 Ürün Linki:</strong> <a href="${url}" target="_blank">${s.urunLink}</a></p>
         <p><strong>💰 Fiyat:</strong> ${s.fiyat} ₺</p>
@@ -99,7 +90,6 @@
           <button class="teslim" onclick="durumDegistir('${doc.id}', 'Teslim Edildi')">Teslim Edildi</button>
         </div>
       `;
-
       liste.appendChild(kart);
     });
   });
