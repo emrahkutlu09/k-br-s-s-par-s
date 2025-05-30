@@ -2,96 +2,100 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Sipariş Ver - Kıbrıs Sipariş Sistemi</title>
+  <title>Sipariş Ver</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
-    body {
-      font-family: sans-serif;
-      background-color: #f2f2f2;
-      padding: 40px;
-    }
-    form {
-      max-width: 500px;
-      margin: auto;
-      padding: 30px;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input, select {
-      width: 100%;
-      margin-bottom: 20px;
-      padding: 10px;
-      font-size: 16px;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #007BFF;
-      color: white;
-      font-size: 16px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    #sonuc {
-      margin-top: 20px;
-      text-align: center;
-      font-weight: bold;
-    }
+    body { font-family: sans-serif; background: #f4f4f4; padding: 40px; }
+    form { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 10px; }
+    input, select { width: 100%; padding: 10px; margin-bottom: 15px; }
+    button { width: 100%; padding: 12px; background: #007BFF; color: white; border: none; border-radius: 5px; font-size: 16px; }
+    #sonuc { margin-top: 20px; font-weight: bold; text-align: center; }
   </style>
 </head>
 <body>
 
-  <h2 style="text-align: center;">Sipariş Formu</h2>
+<h2 style="text-align:center;">Sipariş Formu</h2>
 
-  <form oninput="fiyatHesapla()">
-    <input type="url" placeholder="Ürün Linki" required>
-    <input type="number" id="fiyat" placeholder="Türkiye Fiyatı (₺)" required>
+<form id="siparisForm">
+  <input type="url" id="urunLink" placeholder="Ürün Linki" required>
+  <input type="number" id="fiyat" placeholder="Türkiye Fiyatı (₺)" required>
+  
+  <select id="kategori" required>
+    <option value="">Kategori Seçin</option>
+    <option value="mobilya">Mobilya</option>
+    <option value="elektronik">Elektronik</option>
+    <option value="giyim">Giyim & Ayakkabı</option>
+    <option value="kozmetik">Kozmetik</option>
+  </select>
 
-    <select id="kategori" required>
-      <option value="">Kategori Seçin</option>
-      <option value="mobilya">Mobilya</option>
-      <option value="elektronik">Elektronik</option>
-      <option value="giyim">Giyim & Ayakkabı</option>
-      <option value="kozmetik">Kozmetik & Kişisel Bakım</option>
-    </select>
+  <select id="teslimat" required>
+    <option value="">Teslimat Tipi</option>
+    <option value="depo">Depodan Teslim</option>
+    <option value="eve">Eve Teslim</option>
+  </select>
 
-    <select required>
-      <option value="">Teslimat Tipi</option>
-      <option value="depo">Depodan Teslim</option>
-      <option value="eve">Eve Teslim</option>
-    </select>
+  <div id="sonuc">Toplam Ücret: ₺0</div>
+  <button type="submit">Siparişi Gönder</button>
+</form>
 
-    <div id="sonuc">Toplam Ücret: ₺0</div>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBCbKtD6jPE653IYwtTWo2fH93JXX4MN74",
+    authDomain: "kibrissiparissistemi.firebaseapp.com",
+    projectId: "kibrissiparissistemi",
+    storageBucket: "kibrissiparissistemi.firebasestorage.app",
+    messagingSenderId: "263531733235",
+    appId: "1:263531733235:web:82efdf39ed758a22465786",
+    measurementId: "G-JK5S6L90Q5"
+  };
 
-    <button type="submit">Devam Et</button>
-  </form>
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-  <script>
-    function fiyatHesapla() {
-      let fiyat = parseFloat(document.getElementById("fiyat").value);
-      let kategori = document.getElementById("kategori").value;
-      let oran = 0;
+  document.getElementById("siparisForm").addEventListener("input", fiyatHesapla);
+  document.getElementById("siparisForm").addEventListener("submit", siparisGonder);
 
-      switch(kategori) {
-        case "mobilya": oran = 0.70; break;
-        case "elektronik": oran = 0.65; break;
-        case "giyim": oran = 0.50; break;
-        case "kozmetik": oran = 0.50; break;
-        default: oran = 0;
-      }
-
-      if (!isNaN(fiyat)) {
-        let toplam = Math.round(fiyat * (1 + oran));
-        document.getElementById("sonuc").innerText = `Toplam Ücret: ₺${toplam}`;
-      } else {
-        document.getElementById("sonuc").innerText = `Toplam Ücret: ₺0`;
-      }
+  function fiyatHesapla() {
+    const fiyat = parseFloat(document.getElementById("fiyat").value);
+    const kategori = document.getElementById("kategori").value;
+    let oran = 0;
+    switch(kategori) {
+      case "mobilya": oran = 0.70; break;
+      case "elektronik": oran = 0.65; break;
+      case "giyim":
+      case "kozmetik": oran = 0.50; break;
     }
-  </script>
+    const toplam = !isNaN(fiyat) ? Math.round(fiyat * (1 + oran)) : 0;
+    document.getElementById("sonuc").innerText = `Toplam Ücret: ₺${toplam}`;
+  }
+
+  function siparisGonder(e) {
+    e.preventDefault();
+    const urunLink = document.getElementById("urunLink").value;
+    const fiyat = parseFloat(document.getElementById("fiyat").value);
+    const kategori = document.getElementById("kategori").value;
+    const teslimat = document.getElementById("teslimat").value;
+    const oran = kategori === "mobilya" ? 0.70 : kategori === "elektronik" ? 0.65 : 0.50;
+    const toplam = Math.round(fiyat * (1 + oran));
+
+    db.collection("siparisler").add({
+      urunLink,
+      fiyat,
+      kategori,
+      teslimat,
+      toplam,
+      zaman: new Date()
+    }).then(() => {
+      alert("Sipariş başarıyla kaydedildi!");
+      document.getElementById("siparisForm").reset();
+      document.getElementById("sonuc").innerText = "Toplam Ücret: ₺0";
+    }).catch((error) => {
+      alert("Hata oluştu: " + error.message);
+    });
+  }
+</script>
 
 </body>
 </html>
+
