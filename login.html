@@ -2,11 +2,63 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Test Giriş Sayfası</title>
+  <title>Giriş Yap</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBCbKtD6jPE653IYwtTWo2fH93JXX4MN74",
+      authDomain: "kibrissiparissistemi.firebaseapp.com",
+      projectId: "kibrissiparissistemi",
+      storageBucket: "kibrissiparissistemi.firebasestorage.app",
+      messagingSenderId: "263531733235",
+      appId: "1:263531733235:web:82efdf39ed758a22465786",
+      measurementId: "G-JK5S6L90Q5"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    function girisYap(event) {
+      event.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          alert("Giriş başarılı!");
+          window.location.href = "order.html";
+        })
+        .catch((error) => {
+          alert("Hata: " + error.message);
+        });
+    }
+
+    function googleIleGiris() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then((result) => {
+          alert("Google ile giriş başarılı!");
+          window.location.href = "order.html";
+        })
+        .catch((error) => {
+          alert("Google Giriş Hatası: " + error.message);
+        });
+    }
+  </script>
 </head>
-<body>
-  <h1 style="text-align:center;color:green;">Login Sayfası Yüklendi ✔</h1>
-  <p style="text-align:center;">Bu sayfa çalışıyorsa, Firebase kodları ayrı olarak eklenebilir.</p>
+<body style="font-family:sans-serif;background:#f4f4f4;padding:40px;">
+  <h2 style="text-align:center;">Giriş Yap</h2>
+  <form onsubmit="girisYap(event)" style="max-width:400px;margin:auto;background:white;padding:30px;border-radius:10px;">
+    <input type="email" id="email" placeholder="E-posta" required style="width:100%;padding:10px;margin-bottom:15px;">
+    <input type="password" id="password" placeholder="Şifre" required style="width:100%;padding:10px;margin-bottom:15px;">
+    <button type="submit" style="width:100%;padding:12px;background:#28a745;color:white;border:none;border-radius:5px;">Giriş Yap</button>
+  </form>
+
+  <div style="text-align:center;margin-top:20px;">
+    <button onclick="googleIleGiris()" style="background:#db4437;color:white;padding:12px 20px;border:none;border-radius:5px;font-weight:bold;">
+      Google ile Giriş Yap
+    </button>
+  </div>
 </body>
 </html>
-
