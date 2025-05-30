@@ -2,50 +2,42 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Sipariş Paneli</title>
+  <title>📋 Sipariş Yönetim Paneli</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f8f9fa;
+      margin: 0;
       padding: 20px;
     }
     h2 {
       text-align: center;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: #eee;
-    }
-    .sil {
-      background-color: red;
-      color: white;
-      padding: 5px 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .cikis-btn {
-      float: right;
-      background-color: #6c757d;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
       margin-bottom: 20px;
     }
+    .siparis-kart {
+      background: white;
+      border-left: 5px solid #007bff;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .siparis-kart p {
+      margin: 6px 0;
+    }
+    .durum-buttons button {
+      margin-right: 5px;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .hazirla { background-color: orange; color: white; }
+    .kargoda { background-color: dodgerblue; color: white; }
+    .teslim { background-color: seagreen; color: white; }
+    .sil { background-color: red; color: white; }
   </style>
 </head>
 <body>
@@ -55,23 +47,8 @@
     }
   </script>
 
-  <button class="cikis-btn" onclick="cikisYap()">Çıkış Yap</button>
-  <h2>📋 Sipariş Listesi</h2>
-
-  <table id="siparisTablosu">
-    <thead>
-      <tr>
-        <th>Sipariş Kodu</th>
-        <th>Ürün Linki</th>
-        <th>Fiyat</th>
-        <th>Kategori</th>
-        <th>Teslimat</th>
-        <th>Durum</th>
-        <th>Sil</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <h2>📋 Sipariş Yönetim Paneli</h2>
+  <div id="siparisAlani"></div>
 
   <script>
     const firebaseConfig = {
@@ -83,40 +60,39 @@
       appId: "1:263531733235:web:82efdf39ed758a22465786",
       measurementId: "G-JK5S6L90Q5"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const tbody = document.querySelector("#siparisTablosu tbody");
+    const alan = document.getElementById("siparisAlani");
 
-    function verileriYukle() {
-      db.collection("siparisler").onSnapshot(snapshot => {
-        tbody.innerHTML = "";
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const tr = document.createElement("tr");
+    db.collection("siparisler").onSnapshot(snapshot => {
+      alan.innerHTML = "";
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "siparis-kart";
 
-          tr.innerHTML = `
-            <td>${data.siparisKodu}</td>
-            <td><a href="${data.urunLink}" target="_blank">link</a></td>
-            <td>${data.ucret} ₺</td>
-            <td>${data.kategori}</td>
-            <td>${data.teslimat}</td>
-            <td>
-              <select onchange="durumGuncelle('${doc.id}', this.value)">
-                <option ${data.durum === "Hazırlanıyor" ? "selected" : ""}>Hazırlanıyor</option>
-                <option ${data.durum === "Yolda" ? "selected" : ""}>Yolda</option>
-                <option ${data.durum === "Teslim Edildi" ? "selected" : ""}>Teslim Edildi</option>
-              </select>
-            </td>
-            <td><button class="sil" onclick="silSiparis('${doc.id}')">Sil</button></td>
-          `;
-          tbody.appendChild(tr);
-        });
+        div.innerHTML = `
+          <p>📦 <strong>Ürün Linki:</strong> <a href="${data.urunLink}" target="_blank">${data.urunLink}</a></p>
+          <p>💰 <strong>Fiyat:</strong> ${data.ucret} ₺</p>
+          <p>📁 <strong>Kategori:</strong> ${data.kategori}</p>
+          <p>🚚 <strong>Teslimat:</strong> ${data.teslimat}</p>
+          <p>🧾 <strong>Toplam:</strong> ${data.toplam} ₺</p>
+          <p>📅 <strong>Tarih:</strong> ${data.tarih}</p>
+          <p>📍 <strong>Durum:</strong> ${data.durum}</p>
+          <div class="durum-buttons">
+            <button class="hazirla" onclick="guncelleDurum('${doc.id}', 'Hazırlanıyor')">Hazırlanıyor</button>
+            <button class="kargoda" onclick="guncelleDurum('${doc.id}', 'Kargoda')">Kargoda</button>
+            <button class="teslim" onclick="guncelleDurum('${doc.id}', 'Teslim Edildi')">Teslim Edildi</button>
+            <button class="sil" onclick="silSiparis('${doc.id}')">🗑 Sil</button>
+          </div>
+        `;
+
+        alan.appendChild(div);
       });
-    }
+    });
 
-    function durumGuncelle(id, yeniDurum) {
+    function guncelleDurum(id, yeniDurum) {
       db.collection("siparisler").doc(id).update({ durum: yeniDurum });
     }
 
@@ -125,13 +101,6 @@
         db.collection("siparisler").doc(id).delete();
       }
     }
-
-    function cikisYap() {
-      localStorage.removeItem("girisYapildi");
-      window.location.href = "admin-login.html";
-    }
-
-    verileriYukle();
   </script>
 </body>
 </html>
