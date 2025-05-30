@@ -2,50 +2,11 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Giriş Yap</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBCbKtD6jPE653IYwtTWo2fH93JXX4MN74",
-      authDomain: "kibrissiparissistemi.firebaseapp.com",
-      projectId: "kibrissiparissistemi",
-      storageBucket: "kibrissiparissistemi.firebasestorage.app",
-      messagingSenderId: "263531733235",
-      appId: "1:263531733235:web:82efdf39ed758a22465786",
-      measurementId: "G-JK5S6L90Q5"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    window.girisYap = function (e) {
-      e.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          alert("Giriş başarılı!");
-          window.location.href = "order.html";
-        })
-        .catch((error) => {
-          alert("Hata: " + error.message);
-        });
-    }
-
-    window.googleIleGiris = function () {
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          alert("Google ile giriş başarılı!");
-          window.location.href = "order.html";
-        })
-        .catch((error) => {
-          alert("Google Giriş Hatası: " + error.message);
-        });
-    }
-  </script>
-</head
+  <title>Test Giriş Sayfası</title>
+</head>
+<body>
+  <h1 style="text-align:center;color:green;">Login Sayfası Yüklendi ✔</h1>
+  <p style="text-align:center;">Bu sayfa çalışıyorsa, Firebase kodları ayrı olarak eklenebilir.</p>
+</body>
+</html>
 
