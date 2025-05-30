@@ -90,7 +90,9 @@
         <p><strong>🚚 Teslimat:</strong> ${s.teslimat}</p>
         <p><strong>🧾 Toplam:</strong> ${s.toplam} ₺</p>
         <p><strong>🕒 Tarih:</strong> ${tarih}</p>
-        <p><strong>📌 Durum:</strong> <span id="durum-${doc.id}">${s.durum || "Hazırlanıyor"}</span></p>
+        <p><strong>📌 Durum:</strong> 
+          <span id="durum-${doc.id}">${s.durum || "Hazırlanıyor"}</span>
+        </p>
         <div class="durum-btns">
           <button class="hazir" onclick="durumDegistir('${doc.id}', 'Hazırlanıyor')">Hazırlanıyor</button>
           <button class="kargo" onclick="durumDegistir('${doc.id}', 'Kargoda')">Kargoda</button>
