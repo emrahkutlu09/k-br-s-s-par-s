@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Sepetim - Kıbrıs Sipariş Sistemi</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f4f4f4;
+      padding: 40px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .siparis {
+      background: #f9f9f9;
+      padding: 15px;
+      border-left: 5px solid #007bff;
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 20px;
+    }
+    textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+    .iban-box {
+      background: #e6f7ff;
+      padding: 10px;
+      border: 1px dashed #007bff;
+      margin-top: 10px;
+    }
+    button {
+      width: 100%;
+      margin-top: 30px;
+      padding: 14px;
+      background: #28a745;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Sepetim</h2>
+
+    <div class="siparis">
+      <p><strong>Sipariş Kodu:</strong> 101-1</p>
+      <p><strong>Ürün Linki:</strong> https://trendyol.com/ürün-linki</p>
+      <p><strong>Kategori:</strong> Mobilya</p>
+      <p><strong>Teslimat Tipi:</strong> Eve Teslim</p>
+      <p><strong>Toplam Ücret:</strong> ₺1700</p>
+    </div>
+
+    <label for="adres">Teslimat Adresi:</label>
+    <textarea id="adres" rows="4" placeholder="Açık adresinizi buraya yazın..." required></textarea>
+
+    <label for="odeme">Ödeme Seçeneği:</label>
+    <select id="odeme" onchange="ibanGoster()">
+      <option value="">Seçiniz</option>
+      <option value="havale">Havale / EFT</option>
+      <option value="kapida">Kapıda Ödeme</option>
+    </select>
+
+    <div class="iban-box" id="ibanKutusu" style="display: none;">
+      <strong>IBAN:</strong> TR00 0000 0000 0000 0000 0000 00 <b
