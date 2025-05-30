@@ -2,74 +2,136 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>🔐 Admin Giriş</title>
+  <title>Admin Sipariş Paneli</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f2f2f2;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .login-container {
-      background: white;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 400px;
+      background: #f8f9fa;
+      padding: 20px;
     }
     h2 {
       text-align: center;
-      margin-bottom: 30px;
     }
-    input {
+    table {
       width: 100%;
-      padding: 10px;
-      margin: 10px 0;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
       border: 1px solid #ccc;
-      border-radius: 8px;
+      padding: 8px;
+      text-align: left;
     }
-    button {
-      width: 100%;
-      padding: 12px;
-      background-color: #007bff;
+    th {
+      background-color: #eee;
+    }
+    .sil {
+      background-color: red;
+      color: white;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .cikis-btn {
+      float: right;
+      background-color: #6c757d;
       color: white;
       border: none;
-      border-radius: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 16px;
-    }
-    .error {
-      color: red;
-      text-align: center;
-      margin-top: 10px;
+      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <h2>Admin Giriş</h2>
-    <input type="text" id="username" placeholder="Kullanıcı Adı">
-    <input type="password" id="password" placeholder="Şifre">
-    <button onclick="girisYap()">Giriş Yap</button>
-    <div class="error" id="hataMesaji"></div>
-  </div>
+  <script>
+    if (localStorage.getItem("girisYapildi") !== "true") {
+      window.location.href = "admin-login.html";
+    }
+  </script>
+
+  <button class="cikis-btn" onclick="cikisYap()">Çıkış Yap</button>
+  <h2>📋 Sipariş Listesi</h2>
+
+  <table id="siparisTablosu">
+    <thead>
+      <tr>
+        <th>Sipariş Kodu</th>
+        <th>Ürün Linki</th>
+        <th>Fiyat</th>
+        <th>Kategori</th>
+        <th>Teslimat</th>
+        <th>Durum</th>
+        <th>Sil</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
   <script>
-    function girisYap() {
-      const kullanici = document.getElementById("username").value;
-      const sifre = document.getElementById("password").value;
-      const hata = document.getElementById("hataMesaji");
+    const firebaseConfig = {
+      apiKey: "AIzaSyBCbKtD6jPE653IYwtTWo2fH93JXX4MN74",
+      authDomain: "kibrissiparissistemi.firebaseapp.com",
+      projectId: "kibrissiparissistemi",
+      storageBucket: "kibrissiparissistemi.firebasestorage.app",
+      messagingSenderId: "263531733235",
+      appId: "1:263531733235:web:82efdf39ed758a22465786",
+      measurementId: "G-JK5S6L90Q5"
+    };
 
-      // Basit sabit admin kontrolü
-      if (kullanici === "admin" && sifre === "1234") {
-        window.location.href = "admin-list.html"; // Giriş başarılıysa liste sayfasına geç
-      } else {
-        hata.innerText = "Kullanıcı adı veya şifre yanlış!";
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const tbody = document.querySelector("#siparisTablosu tbody");
+
+    function verileriYukle() {
+      db.collection("siparisler").onSnapshot(snapshot => {
+        tbody.innerHTML = "";
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const tr = document.createElement("tr");
+
+          tr.innerHTML = `
+            <td>${data.siparisKodu}</td>
+            <td><a href="${data.urunLink}" target="_blank">link</a></td>
+            <td>${data.ucret} ₺</td>
+            <td>${data.kategori}</td>
+            <td>${data.teslimat}</td>
+            <td>
+              <select onchange="durumGuncelle('${doc.id}', this.value)">
+                <option ${data.durum === "Hazırlanıyor" ? "selected" : ""}>Hazırlanıyor</option>
+                <option ${data.durum === "Yolda" ? "selected" : ""}>Yolda</option>
+                <option ${data.durum === "Teslim Edildi" ? "selected" : ""}>Teslim Edildi</option>
+              </select>
+            </td>
+            <td><button class="sil" onclick="silSiparis('${doc.id}')">Sil</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    function durumGuncelle(id, yeniDurum) {
+      db.collection("siparisler").doc(id).update({ durum: yeniDurum });
+    }
+
+    function silSiparis(id) {
+      if (confirm("Bu siparişi silmek istediğinize emin misiniz?")) {
+        db.collection("siparisler").doc(id).delete();
       }
     }
+
+    function cikisYap() {
+      localStorage.removeItem("girisYapildi");
+      window.location.href = "admin-login.html";
+    }
+
+    verileriYukle();
   </script>
 </body>
 </html>
