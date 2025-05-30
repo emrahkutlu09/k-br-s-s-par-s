@@ -99,7 +99,10 @@
 <div id="kategoriToplamlari"></div>
 <div id="siparisListesi"></div>
 
-<audio id="bildirimSesi" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="bildirimSesi" preload="auto">
+  <source src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" type="audio/ogg">
+  Tarayıcınız ses etiketini desteklemiyor.
+</audio>
 
 <script>
   const firebaseConfig = {
@@ -129,7 +132,11 @@
     const kategoriToplam = {};
     snapshot.docChanges().forEach(change => {
       if (change.type === "added") {
-        ses.play();
+        if (typeof ses.play === "function") {
+          ses.play().catch(e => {
+            console.warn("Ses otomatik oynatılamadı, sayfayla etkileşime geçmeniz gerekebilir.");
+          });
+        }
         bildirimAlani.style.display = "block";
         setTimeout(() => { bildirimAlani.style.display = "none" }, 3000);
       }
