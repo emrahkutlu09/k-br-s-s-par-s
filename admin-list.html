@@ -8,36 +8,63 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f8f9fa;
+      background: #f1f3f4;
       margin: 0;
       padding: 20px;
     }
     h2 {
       text-align: center;
-      margin-bottom: 20px;
+    }
+    .üst-panel {
+      background: #d4edda;
+      padding: 10px;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+    .üst-panel strong {
+      color: #155724;
     }
     .siparis-kart {
       background: white;
-      border-left: 5px solid #007bff;
-      padding: 20px;
+      border-left: 6px solid dodgerblue;
+      padding: 15px;
       margin-bottom: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
     }
     .siparis-kart p {
       margin: 6px 0;
     }
-    .durum-buttons button {
+    .butonlar button {
       margin-right: 5px;
-      padding: 5px 10px;
+      padding: 6px 10px;
       border: none;
-      border-radius: 6px;
+      border-radius: 5px;
       cursor: pointer;
     }
     .hazirla { background-color: orange; color: white; }
     .kargoda { background-color: dodgerblue; color: white; }
     .teslim { background-color: seagreen; color: white; }
     .sil { background-color: red; color: white; }
+    .filtre-kutusu {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    input[type="text"], input[type="date"] {
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .excel-butonu {
+      background-color: #007bff;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -48,6 +75,23 @@
   </script>
 
   <h2>📋 Sipariş Yönetim Paneli</h2>
+  <div class="filtre-kutusu">
+    <input type="text" id="arama" placeholder="Ara: kategori, teslimat, durum...">
+    <input type="date" id="tarih1">
+    <input type="date" id="tarih2">
+    <button class="excel-butonu">📁 Excel’e Aktar</button>
+  </div>
+
+  <div class="üst-panel">
+    <p>💰 <strong>Toplam Tutar: <span id="toplamTutar">0</span> ₺</strong></p>
+    <ul>
+      <li>🔸 mobilya: <strong id="mobilyaToplam">0</strong> ₺</li>
+      <li>🔸 kozmetik: <strong id="kozmetikToplam">0</strong> ₺</li>
+      <li>🔸 elektronik: <strong id="elektronikToplam">0</strong> ₺</li>
+      <li>🔸 giyim: <strong id="giyimToplam">0</strong> ₺</li>
+    </ul>
+  </div>
+
   <div id="siparisAlani"></div>
 
   <script>
@@ -62,15 +106,31 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-
     const alan = document.getElementById("siparisAlani");
+    const toplamEl = document.getElementById("toplamTutar");
+
+    let toplamTutar = 0;
+    let kategoriToplam = {
+      mobilya: 0,
+      kozmetik: 0,
+      elektronik: 0,
+      giyim: 0
+    };
 
     db.collection("siparisler").onSnapshot(snapshot => {
       alan.innerHTML = "";
+      toplamTutar = 0;
+      kategoriToplam = { mobilya: 0, kozmetik: 0, elektronik: 0, giyim: 0 };
+
       snapshot.forEach(doc => {
         const data = doc.data();
         const div = document.createElement("div");
         div.className = "siparis-kart";
+
+        toplamTutar += Number(data.toplam || 0);
+        if (kategoriToplam[data.kategori] !== undefined) {
+          kategoriToplam[data.kategori] += Number(data.toplam || 0);
+        }
 
         div.innerHTML = `
           <p>📦 <strong>Ürün Linki:</strong> <a href="${data.urunLink}" target="_blank">${data.urunLink}</a></p>
@@ -80,24 +140,28 @@
           <p>🧾 <strong>Toplam:</strong> ${data.toplam} ₺</p>
           <p>📅 <strong>Tarih:</strong> ${data.tarih}</p>
           <p>📍 <strong>Durum:</strong> ${data.durum}</p>
-          <div class="durum-buttons">
+          <div class="butonlar">
             <button class="hazirla" onclick="guncelleDurum('${doc.id}', 'Hazırlanıyor')">Hazırlanıyor</button>
             <button class="kargoda" onclick="guncelleDurum('${doc.id}', 'Kargoda')">Kargoda</button>
             <button class="teslim" onclick="guncelleDurum('${doc.id}', 'Teslim Edildi')">Teslim Edildi</button>
-            <button class="sil" onclick="silSiparis('${doc.id}')">🗑 Sil</button>
+            <button class="sil" onclick="silSiparis('${doc.id}')">Sil</button>
           </div>
         `;
-
         alan.appendChild(div);
       });
+
+      toplamEl.innerText = toplamTutar.toLocaleString();
+      document.getElementById("mobilyaToplam").innerText = kategoriToplam.mobilya;
+      document.getElementById("kozmetikToplam").innerText = kategoriToplam.kozmetik;
+      document.getElementById("elektronikToplam").innerText = kategoriToplam.elektronik;
+      document.getElementById("giyimToplam").innerText = kategoriToplam.giyim;
     });
 
     function guncelleDurum(id, yeniDurum) {
       db.collection("siparisler").doc(id).update({ durum: yeniDurum });
     }
-
     function silSiparis(id) {
-      if (confirm("Bu siparişi silmek istediğinize emin misiniz?")) {
+      if (confirm("Bu siparişi silmek istiyor musunuz?")) {
         db.collection("siparisler").doc(id).delete();
       }
     }
