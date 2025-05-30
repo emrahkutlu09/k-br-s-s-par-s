@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Sipariş Ver - Kıbrıs Sipariş Sistemi</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f2f2f2;
+      padding: 40px;
+    }
+    form {
+      max-width: 500px;
+      margin: auto;
+      padding: 30px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, select {
+      width: 100%;
+      margin-bottom: 20px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #007BFF;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #sonuc {
+      margin-top: 20px;
+      text-align: center;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h2 style="text-align: center;">Sipariş Formu</h2>
+
+  <form oninput="fiyatHesapla()">
+    <input type="url" placeholder="Ürün Linki" required>
+    <input type="number" id="fiyat" placeholder="Türkiye Fiyatı (₺)" required>
+
+    <select id="kategori" required>
+      <option value="">Kategori Seçin</option>
+      <option value="mobilya">Mobilya</option>
+      <option value="elektronik">Elektronik</option>
+      <option value="giyim">Giyim & Ayakkabı</option>
+      <option value="kozmetik">Kozmetik & Kişisel Bakım</option>
+    </select>
+
+    <select required>
+      <option value="">Teslimat Tipi</option>
+      <option value="depo">Depodan Teslim</option>
+      <option value="eve">Eve Teslim</option>
+    </select>
+
+    <div id="sonuc">Toplam Ücret: ₺0</div>
+
+    <button type="submit">Devam Et</button>
+  </form>
+
+  <script>
+    function fiyatHesapla() {
+      let fiyat = parseFloat(document.getElementById("fiyat").value);
+      let kategori = document.getElementById("kategori").value;
+      let oran = 0;
+
+      switch(kategori) {
+        case "mobilya": oran = 0.70; break;
+        case "elektronik": oran = 0.65; break;
+        case "giyim": oran = 0.50; break;
+        case "kozmetik": oran = 0.50; break;
+        default: oran = 0;
+      }
+
+      if (!isNaN(fiyat)) {
+        let toplam = Math.round(fiyat * (1 + oran));
+        document.getElementById("sonuc").innerText = `Toplam Ücret: ₺${toplam}`;
+      } else {
+        document.getElementById("sonuc").innerText = `Toplam Ücret: ₺0`;
+      }
+    }
+  </script>
+
+</body>
+</html>
