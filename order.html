@@ -40,8 +40,68 @@
 </form>
 
 <script>
+  // Firebase yapılandırması
   const firebaseConfig = {
     apiKey: "AIzaSyBCbKtD6jPE653IYwtTWo2fH93JXX4MN74",
     authDomain: "kibrissiparissistemi.firebaseapp.com",
     projectId: "kibrissiparissistemi",
-    storageBucket: "kibrissipariss
+    storageBucket: "kibrissiparissistemi.firebasestorage.app",
+    messagingSenderId: "263531733235",
+    appId: "1:263531733235:web:82efdf39ed758a22465786",
+    measurementId: "G-JK5S6L90Q5"
+  };
+
+  // Firebase başlat
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // Sayfa yüklendiğinde ücret hesapla
+  window.addEventListener("DOMContentLoaded", fiyatHesapla);
+
+  // Fiyat veya kategori değiştiğinde yeniden hesapla
+  document.getElementById("fiyat").addEventListener("input", fiyatHesapla);
+  document.getElementById("kategori").addEventListener("change", fiyatHesapla);
+
+  function fiyatHesapla() {
+    const fiyat = parseFloat(document.getElementById("fiyat").value);
+    const kategori = document.getElementById("kategori").value;
+    let oran = 0;
+    switch(kategori) {
+      case "mobilya": oran = 0.70; break;
+      case "elektronik": oran = 0.65; break;
+      case "giyim":
+      case "kozmetik": oran = 0.50; break;
+    }
+    const toplam = !isNaN(fiyat) ? Math.round(fiyat * (1 + oran)) : 0;
+    document.getElementById("sonuc").innerText = `Toplam Ücret: ₺${toplam}`;
+  }
+
+  // Sipariş gönderildiğinde Firestore'a kaydet
+  document.getElementById("siparisForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const urunLink = document.getElementById("urunLink").value;
+    const fiyat = parseFloat(document.getElementById("fiyat").value);
+    const kategori = document.getElementById("kategori").value;
+    const teslimat = document.getElementById("teslimat").value;
+    const oran = kategori === "mobilya" ? 0.70 : kategori === "elektronik" ? 0.65 : 0.50;
+    const toplam = Math.round(fiyat * (1 + oran));
+
+    db.collection("siparisler").add({
+      urunLink,
+      fiyat,
+      kategori,
+      teslimat,
+      toplam,
+      zaman: new Date()
+    }).then(() => {
+      alert("Sipariş başarıyla kaydedildi!");
+      document.getElementById("siparisForm").reset();
+      document.getElementById("sonuc").innerText = "Toplam Ücret: ₺0";
+    }).catch((error) => {
+      alert("Hata oluştu: " + error.message);
+    });
+  });
+</script>
+
+</body>
+</html>
