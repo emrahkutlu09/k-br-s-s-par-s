@@ -38,15 +38,25 @@
     .siparis-kart a:hover {
       text-decoration: underline;
     }
+
+    .durum-btns button {
+      margin-right: 5px;
+      padding: 4px 8px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .hazir { background-color: #ffc107; color: #000; }
+    .kargo { background-color: #17a2b8; color: #fff; }
+    .teslim { background-color: #28a745; color: #fff; }
   </style>
 </head>
 <body>
 
 <h2>Sipariş Listesi</h2>
 
-<div id="siparisListesi">
-  <!-- Sipariş kartları buraya gelecek -->
-</div>
+<div id="siparisListesi"></div>
 
 <script>
   const firebaseConfig = {
@@ -61,7 +71,6 @@
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
-
   const liste = document.getElementById("siparisListesi");
 
   db.collection("siparisler").orderBy("zaman", "desc").onSnapshot((snapshot) => {
@@ -69,22 +78,35 @@
     snapshot.forEach((doc) => {
       const s = doc.data();
       const tarih = s.zaman.toDate().toLocaleString("tr-TR");
+      const url = s.urunLink.startsWith("http") ? s.urunLink : "https://" + s.urunLink;
 
       const kart = document.createElement("div");
       kart.className = "siparis-kart";
 
       kart.innerHTML = `
-        <p><strong>📦 Ürün Linki:</strong> <a href="${s.urunLink}" target="_blank">${s.urunLink}</a></p>
+        <p><strong>📦 Ürün Linki:</strong> <a href="${url}" target="_blank">${s.urunLink}</a></p>
         <p><strong>💰 Fiyat:</strong> ${s.fiyat} ₺</p>
         <p><strong>📂 Kategori:</strong> ${s.kategori}</p>
         <p><strong>🚚 Teslimat:</strong> ${s.teslimat}</p>
         <p><strong>🧾 Toplam:</strong> ${s.toplam} ₺</p>
         <p><strong>🕒 Tarih:</strong> ${tarih}</p>
+        <p><strong>📌 Durum:</strong> <span id="durum-${doc.id}">${s.durum || "Hazırlanıyor"}</span></p>
+        <div class="durum-btns">
+          <button class="hazir" onclick="durumDegistir('${doc.id}', 'Hazırlanıyor')">Hazırlanıyor</button>
+          <button class="kargo" onclick="durumDegistir('${doc.id}', 'Kargoda')">Kargoda</button>
+          <button class="teslim" onclick="durumDegistir('${doc.id}', 'Teslim Edildi')">Teslim Edildi</button>
+        </div>
       `;
 
       liste.appendChild(kart);
     });
   });
+
+  function durumDegistir(id, yeniDurum) {
+    db.collection("siparisler").doc(id).update({ durum: yeniDurum }).then(() => {
+      document.getElementById("durum-" + id).innerText = yeniDurum;
+    });
+  }
 </script>
 
 </body>
