@@ -2,53 +2,48 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Üye Ol - Kıbrıs Sipariş Sistemi</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background-color: #f9f9f9;
-      padding: 40px;
+  <title>Üye Ol</title>
+  <script type="module">
+    // Firebase SDK'yı modül olarak yükle
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBCbKtD6jPE653IYwtTWo2fH93JXX4MN74",
+      authDomain: "kibrissiparissistemi.firebaseapp.com",
+      projectId: "kibrissiparissistemi",
+      storageBucket: "kibrissiparissistemi.firebasestorage.app",
+      messagingSenderId: "263531733235",
+      appId: "1:263531733235:web:82efdf39ed758a22465786",
+      measurementId: "G-JK5S6L90Q5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.kayitOl = function (e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          alert("Kayıt başarılı! Giriş yapabilirsiniz.");
+          window.location.href = "login.html";
+        })
+        .catch((error) => {
+          alert("Hata: " + error.message);
+        });
     }
-    form {
-      max-width: 400px;
-      margin: auto;
-      padding: 30px;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input {
-      display: block;
-      width: 100%;
-      margin-bottom: 20px;
-      padding: 10px;
-      font-size: 16px;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #007BFF;
-      color: white;
-      font-size: 16px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-  </style>
+  </script>
 </head>
-<body>
-
-  <h2 style="text-align: center;">Üye Ol</h2>
-
-  <form action="#" method="post">
-    <input type="text" name="fullname" placeholder="Ad Soyad" required>
-    <input type="email" name="email" placeholder="E-Posta" required>
-    <input type="password" name="password" placeholder="Şifre" required>
-    <button type="submit">Üye Ol</button>
+<body style="font-family:sans-serif;background:#f4f4f4;padding:40px;">
+  <h2 style="text-align:center;">Üye Ol</h2>
+  <form onsubmit="kayitOl(event)" style="max-width:400px;margin:auto;background:white;padding:30px;border-radius:10px;">
+    <input type="email" id="email" placeholder="E-posta" required style="width:100%;padding:10px;margin-bottom:15px;">
+    <input type="password" id="password" placeholder="Şifre" required style="width:100%;padding:10px;margin-bottom:15px;">
+    <button type="submit" style="width:100%;padding:12px;background:#007bff;color:white;border:none;border-radius:5px;">Üye Ol</button>
   </form>
-
 </body>
 </html>
+
