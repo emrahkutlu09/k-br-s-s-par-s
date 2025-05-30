@@ -54,12 +54,11 @@
     tablo.innerHTML = "";
     snapshot.forEach((doc) => {
       const s = doc.data();
-      const satir = tablo.insertRow();
-
       const tarih = s.zaman.toDate().toLocaleString("tr-TR");
 
+      const satir = tablo.insertRow();
       satir.innerHTML = `
-        <td><a href="${s.urunLink}" target="_blank">Link</a></td>
+        <td><a href="${s.urunLink}" target="_blank">${s.urunLink}</a></td>
         <td>${s.fiyat}</td>
         <td>${s.kategori}</td>
         <td>${s.teslimat}</td>
