@@ -11,7 +11,7 @@
     input, select { width: 100%; padding: 10px; margin-bottom: 15px; }
     button { width: 100%; padding: 12px; background: #007BFF; color: white; border: none; border-radius: 5px; font-size: 16px; }
     #sonuc { margin-top: 20px; font-weight: bold; text-align: center; }
-    #adresSecimi { display: none; }
+    #adresSecimi, #acikAdresAlani { display: none; }
   </style>
 </head>
 <body>
@@ -46,7 +46,9 @@
     <option value="İskele">İskele</option>
   </select>
 
-  <div id="sonuc">Toplam Üret: ₺0</div>
+  <input type="text" id="acikAdresAlani" placeholder="Açık adresinizi giriniz">
+
+  <div id="sonuc">Toplam Ücret: ₺0</div>
   <button type="submit">Siparişi Gönder</button>
 </form>
 
@@ -60,38 +62,51 @@
     appId: "1:263531733235:web:82efdf39ed758a22465786",
     measurementId: "G-JK5S6L90Q5"
   };
-
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  function getFiyatlar() {
+  let fiyatlar = { kategoriler: {}, adresler: {} };
+
+  function localVerileriYukle() {
     const oranlar = JSON.parse(localStorage.getItem("oranlar")) || {};
     const ucretler = JSON.parse(localStorage.getItem("ucretler")) || {};
 
-    return {
-      kategoriler: {
-        mobilya: parseFloat(oranlar.mobilya || 0) / 100,
-        elektronik: parseFloat(oranlar.elektronik || 0) / 100,
-        giyim: parseFloat(oranlar.giyim || 0) / 100,
-        kozmetik: parseFloat(oranlar.kozmetik || 0) / 100
-      },
-      adresler: {
-        Lefkoşa: parseFloat(ucretler.lefkosa || 0),
-        Girne: parseFloat(ucretler.girne || 0),
-        Gazimağusa: parseFloat(ucretler.magusa || 0),
-        Güzelyurt: parseFloat(ucretler.guzelyurt || 0),
-        İskele: parseFloat(ucretler.iskele || 0)
-      }
+    fiyatlar.kategoriler = {
+      mobilya: parseFloat(oranlar.mobilya) / 100 || 0,
+      elektronik: parseFloat(oranlar.elektronik) / 100 || 0,
+      giyim: parseFloat(oranlar.giyim) / 100 || 0,
+      kozmetik: parseFloat(oranlar.kozmetik) / 100 || 0
     };
+
+    fiyatlar.adresler = {
+      Lefkoşa: parseFloat(ucretler.lefkosa) || 0,
+      Girne: parseFloat(ucretler.girne) || 0,
+      Gazimağusa: parseFloat(ucretler.magusa) || 0,
+      Güzelyurt: parseFloat(ucretler.guzelyurt) || 0,
+      İskele: parseFloat(ucretler.iskele) || 0
+    };
+
+    hesapla();
   }
+
+  window.onload = localVerileriYukle;
 
   document.getElementById("fiyat").addEventListener("input", hesapla);
   document.getElementById("kategori").addEventListener("change", hesapla);
+
   document.getElementById("teslimat").addEventListener("change", function(e) {
     const adresSecimi = document.getElementById("adresSecimi");
-    adresSecimi.style.display = (e.target.value === "eve") ? "block" : "none";
+    const acikAdres = document.getElementById("acikAdresAlani");
+    if (e.target.value === "eve") {
+      adresSecimi.style.display = "block";
+      acikAdres.style.display = "block";
+    } else {
+      adresSecimi.style.display = "none";
+      acikAdres.style.display = "none";
+    }
     hesapla();
   });
+
   document.getElementById("adresSecimi").addEventListener("change", hesapla);
 
   function hesapla() {
@@ -99,18 +114,17 @@
     const kategori = document.getElementById("kategori").value;
     const teslimat = document.getElementById("teslimat").value;
     const sehir = document.getElementById("adresSecimi").value;
-    const fiyatlar = getFiyatlar();
 
     if (isNaN(fiyat) || kategori === "") {
-      document.getElementById("sonuc").innerText = "Toplam Üret: ₺0";
+      document.getElementById("sonuc").innerText = "Toplam Ücret: ₺0";
       return;
     }
 
     const oran = fiyatlar.kategoriler[kategori] || 0;
     const sehirUcreti = (teslimat === "eve") ? (fiyatlar.adresler[sehir] || 0) : 0;
-    const toplam = Math.round(fiyat * (1 + oran) + sehirUcreti);
 
-    document.getElementById("sonuc").innerText = `Toplam Üret: ₺${toplam}`;
+    const toplam = Math.round(fiyat * (1 + oran) + sehirUcreti);
+    document.getElementById("sonuc").innerText = `Toplam Ücret: ₺${toplam}`;
   }
 
   document.getElementById("siparisForm").addEventListener("submit", function(e) {
@@ -127,10 +141,15 @@
     const kategori = document.getElementById("kategori").value;
     const teslimat = document.getElementById("teslimat").value;
     const sehir = document.getElementById("adresSecimi").value;
-    const fiyatlar = getFiyatlar();
+    const acikAdres = document.getElementById("acikAdresAlani").value;
 
     if (teslimat === "eve" && sehir === "") {
-      alert("Lütfen bir şehir seçiniz.");
+      alert("Lütfen şehir seçiniz.");
+      return;
+    }
+
+    if (teslimat === "eve" && !acikAdres.trim()) {
+      alert("Lütfen açık adresinizi giriniz.");
       return;
     }
 
@@ -145,13 +164,15 @@
       kategori,
       teslimat,
       sehir,
+      acikAdres,
       toplam,
       zaman: new Date()
     }).then(() => {
       alert("✅ Sipariş başarıyla kaydedildi!");
       document.getElementById("siparisForm").reset();
       document.getElementById("adresSecimi").style.display = "none";
-      document.getElementById("sonuc").innerText = "Toplam Üret: ₺0";
+      document.getElementById("acikAdresAlani").style.display = "none";
+      document.getElementById("sonuc").innerText = "Toplam Ücret: ₺0";
     }).catch((error) => {
       alert("❌ Hata oluştu: " + error.message);
     });
