@@ -55,7 +55,7 @@
           const sonuc = await auth.createUserWithEmailAndPassword(email, sifre);
           kullanici = sonuc.user;
         } else {
-          // Sadece Firestore'a kayıt için geçici UID
+          // E-posta girilmemişse sahte UID ile kayıt
           kullanici = { uid: "uid_" + Date.now() };
         }
 
