@@ -86,6 +86,12 @@
   </style>
 </head>
 <body>
+  <script>
+  if (localStorage.getItem("girisYapildi") !== "true") {
+    window.location.href = "admin-login.html";
+  }
+</script>
+
 
 <h2>📋 Sipariş Yönetim Paneli</h2>
 <div class="panel-header">
