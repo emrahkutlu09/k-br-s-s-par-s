@@ -61,6 +61,7 @@
           kayitTarihi: new Date()
         });
 
+        localStorage.setItem("kullaniciAdi", adSoyad); // Ad soyadı sakla
         alert("Kayıt başarılı!");
         window.location.href = "index.html";
       } catch (error) {
