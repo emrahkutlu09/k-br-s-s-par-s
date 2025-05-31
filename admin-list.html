@@ -93,6 +93,22 @@
       cursor: pointer;
       margin-bottom: 20px;
     }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-top: 30px;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background: #28a745;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -108,12 +124,26 @@
     <input type="text" id="arama" placeholder="🔍 Ara: kategori, teslimat, durum..." oninput="filtreleSiparisler()">
     <input type="date" id="baslangicTarihi" onchange="filtreleSiparisler()">
     <input type="date" id="bitisTarihi" onchange="filtreleSiparisler()">
-    <button onclick="excelIndir()">📥 Excel’e Aktar</button>
+    <button onclick="excelIndir()">📅 Excel’e Aktar</button>
   </div>
   <div id="bildirimAlani">🔔 Yeni sipariş alındı!</div>
   <div id="toplamTutar">💰 Toplam Tutar: 0 ₺</div>
   <div id="kategoriToplamlari"></div>
   <div id="siparisListesi"></div>
+
+  <h2>👥 Kayıtlı Üyeler</h2>
+  <table id="uyeTablosu">
+    <thead>
+      <tr>
+        <th>Ad Soyad</th>
+        <th>E-posta</th>
+        <th>Telefon</th>
+        <th>Adres</th>
+        <th>Kayıt Tarihi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
   <audio id="bildirimSesi" preload="auto">
     <source src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" type="audio/ogg">
@@ -121,140 +151,25 @@
   </audio>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBCbKtD6jPE653IYwtTWo2fH93JXX4MN74",
-      authDomain: "kibrissiparissistemi.firebaseapp.com",
-      projectId: "kibrissiparissistemi",
-      storageBucket: "kibrissiparissistemi.firebasestorage.app",
-      messagingSenderId: "263531733235",
-      appId: "1:263531733235:web:82efdf39ed758a22465786",
-      measurementId: "G-JK5S6L90Q5"
-    };
-
-    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const liste = document.getElementById("siparisListesi");
-    const toplamDiv = document.getElementById("toplamTutar");
-    const kategoriDiv = document.getElementById("kategoriToplamlari");
-    const ses = document.getElementById("bildirimSesi");
-    const bildirimAlani = document.getElementById("bildirimAlani");
 
-    let siparisVerileri = [];
-
-    db.collection("siparisler").orderBy("zaman", "desc").onSnapshot((snapshot) => {
-      siparisVerileri = [];
-      liste.innerHTML = "";
-      snapshot.docChanges().forEach(change => {
-        if (change.type === "added") {
-          if (typeof ses.play === "function") {
-            ses.play().catch(e => {
-              console.warn("Ses otomatik oynatılamadı, sayfayla etkileşime geçmeniz gerekebilir.");
-            });
-          }
-          bildirimAlani.style.display = "block";
-          setTimeout(() => { bildirimAlani.style.display = "none" }, 3000);
-        }
+    const tabloGovdesi = document.querySelector("#uyeTablosu tbody");
+    db.collection("uyeler").orderBy("kayitTarihi", "desc").get().then(snapshot => {
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const satir = document.createElement("tr");
+        satir.innerHTML = `
+          <td>${data.adSoyad || "-"}</td>
+          <td>${data.email || "-"}</td>
+          <td>${data.telefon || "-"}</td>
+          <td>${data.adres || "-"}</td>
+          <td>${data.kayitTarihi ? new Date(data.kayitTarihi.toDate()).toLocaleString() : "-"}</td>
+        `;
+        tabloGovdesi.appendChild(satir);
       });
-
-      snapshot.forEach((doc) => {
-        const s = doc.data();
-        s.id = doc.id;
-        siparisVerileri.push(s);
-      });
-
-      filtreleSiparisler();
+    }).catch(error => {
+      alert("Üyeler alınamadı: " + error.message);
     });
-
-    function filtreleSiparisler() {
-      liste.innerHTML = "";
-      let toplam = 0;
-      const kategoriToplam = {};
-      const arama = document.getElementById("arama").value.toLowerCase();
-      const baslangic = new Date(document.getElementById("baslangicTarihi").value);
-      const bitis = new Date(document.getElementById("bitisTarihi").value);
-
-      siparisVerileri.forEach((s) => {
-        const zaman = s.zaman.toDate();
-        const tarih = zaman.toLocaleString("tr-TR");
-        const url = s.urunLink.startsWith("http") ? s.urunLink : "https://" + s.urunLink;
-
-        if (
-          (arama === '' ||
-            s.kategori.toLowerCase().includes(arama) ||
-            s.teslimat.toLowerCase().includes(arama) ||
-            (s.durum || '').toLowerCase().includes(arama)) &&
-          (!isNaN(baslangic) ? zaman >= baslangic : true) &&
-          (!isNaN(bitis) ? zaman <= bitis : true)
-        ) {
-          const kart = document.createElement("div");
-          kart.className = "siparis-kart";
-          kart.innerHTML = `
-            <p><strong>📦 Ürün Linki:</strong> <a href="${url}" target="_blank">${s.urunLink}</a></p>
-            <p><strong>💰 Fiyat:</strong> ${s.fiyat} ₺</p>
-            <p><strong>📂 Kategori:</strong> ${s.kategori}</p>
-            <p><strong>🚚 Teslimat:</strong> ${s.teslimat}</p>
-            <p><strong>🧾 Toplam:</strong> ${s.toplam} ₺</p>
-            <p><strong>🕒 Tarih:</strong> ${tarih}</p>
-            <p><strong>📌 Durum:</strong> <span id="durum-${s.id}">${s.durum || "Hazırlanıyor"}</span></p>
-            <div class="durum-btns">
-              <button class="hazir" onclick="durumDegistir('${s.id}', 'Hazırlanıyor')">Hazırlanıyor</button>
-              <button class="kargo" onclick="durumDegistir('${s.id}', 'Kargoda')">Kargoda</button>
-              <button class="teslim" onclick="durumDegistir('${s.id}', 'Teslim Edildi')">Teslim Edildi</button>
-              <button class="sil" onclick="siparisSil('${s.id}')">🗑 Sil</button>
-            </div>
-          `;
-          liste.appendChild(kart);
-
-          const tutar = parseFloat(s.toplam || s.fiyat || 0);
-          toplam += tutar;
-          const kategori = s.kategori;
-          kategoriToplam[kategori] = (kategoriToplam[kategori] || 0) + tutar;
-        }
-      });
-
-      toplamDiv.innerText = `💰 Toplam Tutar: ${toplam.toLocaleString("tr-TR")} ₺`;
-      kategoriDiv.innerHTML = Object.entries(kategoriToplam).map(([kat, val]) => `🔸 ${kat}: ${val.toLocaleString("tr-TR")} ₺`).join("<br>");
-    }
-
-    function durumDegistir(id, yeniDurum) {
-      db.collection("siparisler").doc(id).update({ durum: yeniDurum }).then(() => {
-        document.getElementById("durum-" + id).innerText = yeniDurum;
-      });
-    }
-
-    function siparisSil(id) {
-      if (confirm("Bu siparişi silmek istiyor musunuz?")) {
-        db.collection("siparisler").doc(id).delete();
-      }
-    }
-
-    function excelIndir() {
-      db.collection("siparisler").get().then((querySnapshot) => {
-        const data = [];
-        querySnapshot.forEach((doc) => {
-          const s = doc.data();
-          const zaman = s.zaman.toDate().toLocaleString("tr-TR");
-          data.push({
-            "Ürün Linki": s.urunLink,
-            "Fiyat (₺)": s.fiyat,
-            "Kategori": s.kategori,
-            "Teslimat": s.teslimat,
-            "Toplam (₺)": s.toplam,
-            "Durum": s.durum || "Hazırlanıyor",
-            "Tarih": zaman
-          });
-        });
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Siparişler");
-        XLSX.writeFile(wb, "siparisler.xlsx");
-      });
-    }
-
-    function cikisYap() {
-      localStorage.removeItem("girisYapildi");
-      window.location.href = "admin-login.html";
-    }
   </script>
 </body>
 </html>
