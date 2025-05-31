@@ -138,7 +138,6 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-
     const liste = document.getElementById("siparisListesi");
     const toplamDiv = document.getElementById("toplamTutar");
     const kategoriDiv = document.getElementById("kategoriToplamlari");
@@ -261,37 +260,6 @@
       localStorage.removeItem("girisYapildi");
       window.location.href = "admin-login.html";
     }
-
-    // Yeni ek: Kayıtlı Üyeleri Listele
-    db.collection("uyeler").orderBy("kayitTarihi", "desc").get().then(snapshot => {
-      const tabloGovdesi = document.createElement("tbody");
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const satir = document.createElement("tr");
-        satir.innerHTML = `
-          <td>${data.adSoyad || "-"}</td>
-          <td>${data.email || "-"}</td>
-          <td>${data.telefon || "-"}</td>
-          <td>${data.adres || "-"}</td>
-          <td>${data.kayitTarihi ? new Date(data.kayitTarihi.toDate()).toLocaleString() : "-"}</td>
-        `;
-        tabloGovdesi.appendChild(satir);
-      });
-      const uyelerTablo = document.createElement("table");
-      uyelerTablo.innerHTML = `
-        <thead>
-          <tr>
-            <th>Ad Soyad</th>
-            <th>E-posta</th>
-            <th>Telefon</th>
-            <th>Adres</th>
-            <th>Kayıt Tarihi</th>
-          </tr>
-        </thead>
-      `;
-      uyelerTablo.appendChild(tabloGovdesi);
-      document.body.appendChild(uyelerTablo);
-    });
   </script>
 </body>
 </html>
