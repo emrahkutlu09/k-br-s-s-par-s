@@ -67,20 +67,24 @@
   </div>
 
   <script>
-    // Kullanıcı bilgisi varsa adını soyadını göster
-    window.onload = () => {
-      const kullanici = JSON.parse(localStorage.getItem("kullanici"));
-
-      if (kullanici && kullanici.ad && kullanici.soyad) {
-        document.getElementById("kullanici-bilgi").innerText = `👤 ${kullanici.ad} ${kullanici.soyad}`;
-
-        // Giriş ve kayıt ol butonlarını gizle
-        const kayitBtn = document.getElementById("kayitOlBtn");
-        const girisBtn = document.getElementById("girisYapBtn");
-        if (kayitBtn) kayitBtn.style.display = "none";
-        if (girisBtn) girisBtn.style.display = "none";
+    document.addEventListener("DOMContentLoaded", () => {
+      try {
+        const kullaniciStr = localStorage.getItem("kullanici");
+        if (kullaniciStr) {
+          const kullanici = JSON.parse(kullaniciStr);
+          if (kullanici && kullanici.ad && kullanici.soyad) {
+            document.getElementById("kullanici-bilgi").innerText = `👤 ${kullanici.ad} ${kullanici.soyad}`;
+            // Kayıt Ol ve Giriş Yap butonlarını gizle
+            const kayitBtn = document.getElementById("kayitOlBtn");
+            const girisBtn = document.getElementById("girisYapBtn");
+            if (kayitBtn) kayitBtn.style.display = "none";
+            if (girisBtn) girisBtn.style.display = "none";
+          }
+        }
+      } catch (e) {
+        console.warn("Kullanıcı bilgisi okunamadı:", e);
       }
-    }
+    });
   </script>
 </body>
 </html>
