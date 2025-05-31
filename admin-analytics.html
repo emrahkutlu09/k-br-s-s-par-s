@@ -2,39 +2,96 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>📊 Sipariş Analiz Paneli</title>
+  <title>Admin Paneli - Analytics</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f0f2f5;
-      margin: 0;
+      background: #f4f6f9;
       padding: 20px;
     }
     h2 {
       text-align: center;
+      color: #333;
+    }
+    .menu-buttons {
+      text-align: center;
       margin-bottom: 30px;
     }
-    .chart-container {
-      width: 90%;
+    .menu-buttons button {
+      padding: 10px 16px;
+      margin: 0 8px;
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
+    .menu-buttons button:hover {
+      background-color: #0056b3;
+    }
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
       margin: auto;
-      margin-bottom: 50px;
+    }
+    .card {
       background: white;
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .card h3 {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 10px;
+    }
+    .card p {
+      font-size: 24px;
+      font-weight: bold;
+      color: #007bff;
+    }
+    .card-small p {
+      font-size: 18px;
     }
   </style>
 </head>
 <body>
-  <h2>📊 Sipariş Analiz Paneli</h2>
-  <div class="chart-container">
-    <canvas id="kategoriChart"></canvas>
+
+  <!-- GEÇİŞ BUTONLARI -->
+  <div class="menu-buttons">
+    <button onclick="window.location.href='admin-list.html'">📦 Siparişler</button>
+    <button onclick="window.location.href='admin-uyeler.html'">👥 Kayıtlı Üyeler</button>
+    <button onclick="window.location.href='admin-analytics.html'">📊 Analytics</button>
   </div>
-  <div class="chart-container">
-    <canvas id="durumChart"></canvas>
+
+  <h2>📊 Yönetici İstatistik Paneli</h2>
+
+  <div class="card-container">
+    <div class="card">
+      <h3>👥 Toplam Üye Sayısı</h3>
+      <p id="uyeSayisi">-</p>
+    </div>
+    <div class="card">
+      <h3>📦 Toplam Sipariş Sayısı</h3>
+      <p id="siparisSayisi">-</p>
+    </div>
+    <div class="card">
+      <h3>🛒 Bugünkü Siparişler</h3>
+      <p id="bugunSiparis">-</p>
+    </div>
+    <div class="card">
+      <h3>💰 Toplam Ciro</h3>
+      <p id="toplamCiro">-</p>
+    </div>
+    <div class="card card-small">
+      <h3>📂 Kategori Dağılımı</h3>
+      <p id="kategoriDagilimi">Yükleniyor...</p>
+    </div>
   </div>
 
   <script>
@@ -42,70 +99,46 @@
       apiKey: "AIzaSyBCbKtD6jPE653IYwtTWo2fH93JXX4MN74",
       authDomain: "kibrissiparissistemi.firebaseapp.com",
       projectId: "kibrissiparissistemi",
-      storageBucket: "kibrissiparissistemi.firebasestorage.app",
+      storageBucket: "kibrissiparissistemi.appspot.com",
       messagingSenderId: "263531733235",
-      appId: "1:263531733235:web:82efdf39ed758a22465786",
-      measurementId: "G-JK5S6L90Q5"
+      appId: "1:263531733235:web:82efdf39ed758a22465786"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    db.collection("siparisler").get().then((querySnapshot) => {
-      const kategoriSayac = {};
-      const durumSayac = {};
+    // Üye Sayısı
+    db.collection("uyeler").get().then(snapshot => {
+      document.getElementById("uyeSayisi").innerText = snapshot.size;
+    });
 
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const kategori = data.kategori || "Bilinmiyor";
-        const durum = data.durum || "Hazırlanıyor";
+    // Sipariş Sayısı + Bugünkü Sipariş + Ciro + Kategori
+    db.collection("siparisler").get().then(snapshot => {
+      let bugun = 0;
+      let ciro = 0;
+      let kategoriMap = {};
 
-        kategoriSayac[kategori] = (kategoriSayac[kategori] || 0) + 1;
-        durumSayac[durum] = (durumSayac[durum] || 0) + 1;
+      const bugunStr = new Date().toLocaleDateString("tr-TR");
+
+      snapshot.forEach(doc => {
+        const s = doc.data();
+        const tarih = s.zaman?.toDate()?.toLocaleDateString("tr-TR");
+        const toplam = parseFloat(s.toplam || s.fiyat || 0);
+        const kategori = s.kategori || "Belirsiz";
+
+        if (tarih === bugunStr) bugun++;
+        ciro += toplam;
+
+        kategoriMap[kategori] = (kategoriMap[kategori] || 0) + toplam;
       });
 
-      new Chart(document.getElementById("kategoriChart"), {
-        type: 'bar',
-        data: {
-          labels: Object.keys(kategoriSayac),
-          datasets: [{
-            label: 'Kategoriye Göre Sipariş Sayısı',
-            data: Object.values(kategoriSayac),
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-            title: {
-              display: true,
-              text: '📦 Kategorilere Göre Siparişler'
-            }
-          }
-        }
-      });
+      document.getElementById("siparisSayisi").innerText = snapshot.size;
+      document.getElementById("bugunSiparis").innerText = bugun;
+      document.getElementById("toplamCiro").innerText = `${ciro.toLocaleString("tr-TR")} ₺`;
 
-      new Chart(document.getElementById("durumChart"), {
-        type: 'doughnut',
-        data: {
-          labels: Object.keys(durumSayac),
-          datasets: [{
-            label: 'Durum Dağılımı',
-            data: Object.values(durumSayac),
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            title: {
-              display: true,
-              text: '🚚 Sipariş Durumlarına Göre Dağılım'
-            }
-          }
-        }
-      });
+      const dagilim = Object.entries(kategoriMap).map(([k, v]) =>
+        `🔸 ${k}: ${v.toLocaleString("tr-TR")} ₺`).join("<br>");
+      document.getElementById("kategoriDagilimi").innerHTML = dagilim;
     });
   </script>
 </body>
