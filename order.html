@@ -35,6 +35,14 @@
     <option value="eve">Eve Teslim</option>
   </select>
 
+  <select id="sehir" style="display:none;" onchange="fiyatHesapla()">
+    <option value="">Şehir Seçin</option>
+    <option value="Lefkoşa">Lefkoşa</option>
+    <option value="Girne">Girne</option>
+    <option value="Mağusa">Mağusa</option>
+    <option value="Güzelyurt">Güzelyurt</option>
+  </select>
+
   <div id="sonuc">Toplam Ücret: ₺0</div>
   <button type="submit">Siparişi Gönder</button>
 </form>
@@ -46,68 +54,85 @@
     projectId: "kibrissiparissistemi",
     storageBucket: "kibrissiparissistemi.firebasestorage.app",
     messagingSenderId: "263531733235",
-    appId: "1:263531733235:web:82efdf39ed758a22465786",
-    measurementId: "G-JK5S6L90Q5"
+    appId: "1:263531733235:web:82efdf39ed758a22465786"
   };
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  const fiyatInput = document.getElementById("fiyat");
-  const kategoriSelect = document.getElementById("kategori");
-  const sonucDiv = document.getElementById("sonuc");
+  let kategoriOranlari = {};
+  let sehirUcretleri = {};
 
-  fiyatInput.addEventListener("input", fiyatHesapla);
-  kategoriSelect.addEventListener("change", fiyatHesapla);
+  firebase.firestore().collection("ayarlar").doc("fiyatlar").get().then(doc => {
+    if (doc.exists) {
+      const data = doc.data();
+      kategoriOranlari = data.kategoriler || {};
+      sehirUcretleri = data.sehirler || {};
+    }
+  });
+
+  document.getElementById("teslimat").addEventListener("change", function () {
+    const sehirSecim = document.getElementById("sehir");
+    if (this.value === "eve") {
+      sehirSecim.style.display = "block";
+    } else {
+      sehirSecim.style.display = "none";
+    }
+    fiyatHesapla();
+  });
+
+  document.getElementById("fiyat").addEventListener("input", fiyatHesapla);
+  document.getElementById("kategori").addEventListener("change", fiyatHesapla);
 
   function fiyatHesapla() {
-    const fiyat = parseFloat(fiyatInput.value);
-    const kategori = kategoriSelect.value;
+    const fiyat = parseFloat(document.getElementById("fiyat").value);
+    const kategori = document.getElementById("kategori").value;
+    const teslimat = document.getElementById("teslimat").value;
+    const sehir = document.getElementById("sehir").value;
 
     if (isNaN(fiyat) || kategori === "") {
-      sonucDiv.innerText = "Toplam Ücret: ₺0";
+      document.getElementById("sonuc").innerText = "Toplam Ücret: ₺0";
       return;
     }
 
-    let oran = 0;
-    switch (kategori) {
-      case "mobilya": oran = 0.70; break;
-      case "elektronik": oran = 0.65; break;
-      case "giyim":
-      case "kozmetik": oran = 0.50; break;
-    }
+    const oran = kategoriOranlari[kategori] || 0;
+    const sehirUcreti = teslimat === "eve" ? (sehirUcretleri[sehir] || 0) : 0;
+    const toplam = Math.round(fiyat * (1 + oran) + sehirUcreti);
 
-    const toplam = Math.round(fiyat * (1 + oran));
-    sonucDiv.innerText = `Toplam Ücret: ₺${toplam}`;
+    document.getElementById("sonuc").innerText = `Toplam Ücret: ₺${toplam}`;
   }
 
-  document.getElementById("siparisForm").addEventListener("submit", function(e) {
+  document.getElementById("siparisForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
     const urunLink = document.getElementById("urunLink").value;
-    const fiyat = parseFloat(fiyatInput.value);
-    const kategori = kategoriSelect.value;
+    const fiyat = parseFloat(document.getElementById("fiyat").value);
+    const kategori = document.getElementById("kategori").value;
     const teslimat = document.getElementById("teslimat").value;
+    const sehir = document.getElementById("sehir").value;
 
     if (isNaN(fiyat) || kategori === "") {
       alert("Lütfen geçerli bir fiyat ve kategori giriniz.");
       return;
     }
 
-    let oran = kategori === "mobilya" ? 0.70 : kategori === "elektronik" ? 0.65 : 0.50;
-    const toplam = Math.round(fiyat * (1 + oran));
+    const oran = kategoriOranlari[kategori] || 0;
+    const sehirUcreti = teslimat === "eve" ? (sehirUcretleri[sehir] || 0) : 0;
+    const toplam = Math.round(fiyat * (1 + oran) + sehirUcreti);
 
     db.collection("siparisler").add({
       urunLink,
       fiyat,
       kategori,
       teslimat,
+      sehir,
       toplam,
       zaman: new Date()
     }).then(() => {
       alert("✅ Sipariş başarıyla kaydedildi!");
       document.getElementById("siparisForm").reset();
-      sonucDiv.innerText = "Toplam Ücret: ₺0";
+      document.getElementById("sehir").style.display = "none";
+      document.getElementById("sonuc").innerText = "Toplam Ücret: ₺0";
     }).catch((error) => {
       alert("❌ Hata oluştu: " + error.message);
     });
@@ -116,4 +141,3 @@
 
 </body>
 </html>
-
