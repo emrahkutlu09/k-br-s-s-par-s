@@ -100,13 +100,15 @@
       if (kullaniciStr) {
         try {
           const kullanici = JSON.parse(kullaniciStr);
-          if (kullanici.ad && kullanici.soyad) {
+          if (kullanici && kullanici.ad && kullanici.soyad) {
             bilgi.innerText = `👤 ${kullanici.ad} ${kullanici.soyad}`;
             panel.style.display = "flex";
 
             // Giriş/Kayıt butonlarını gizle
-            document.getElementById("kayitOlBtn").style.display = "none";
-            document.getElementById("girisYapBtn").style.display = "none";
+            const kayitBtn = document.getElementById("kayitOlBtn");
+            const girisBtn = document.getElementById("girisYapBtn");
+            if (kayitBtn) kayitBtn.style.display = "none";
+            if (girisBtn) girisBtn.style.display = "none";
           }
         } catch (e) {
           console.warn("Kullanıcı verisi okunamadı:", e);
@@ -114,10 +116,12 @@
       }
 
       // Çıkış işlemi
-      cikisBtn.addEventListener("click", () => {
-        localStorage.removeItem("kullanici");
-        window.location.reload();
-      });
+      if (cikisBtn) {
+        cikisBtn.addEventListener("click", () => {
+          localStorage.removeItem("kullanici");
+          window.location.reload();
+        });
+      }
     });
   </script>
 </body>
