@@ -17,11 +17,11 @@
 </head>
 <body>
   <div style="text-align:center; margin-bottom: 30px;">
-  <a href="admin-list.html" class="menu-btn" style="margin:10px; padding:10px 20px; background:#007BFF; color:white; border-radius:6px; text-decoration:none;">📋 Siparişler</a>
-  <a href="admin-uyeler.html" class="menu-btn" style="margin:10px; padding:10px 20px; background:#17a2b8; color:white; border-radius:6px; text-decoration:none;">👤 Kayıtlı Müşteriler</a>
-  <a href="admin-analytics.html" class="menu-btn" style="margin:10px; padding:10px 20px; background:#28a745; color:white; border-radius:6px; text-decoration:none;">📊 Analitik</a>
-  <a href="fiyatlandirma.html" class="menu-btn" style="margin:10px; padding:10px 20px; background:#ffc107; color:black; border-radius:6px; text-decoration:none;">💸 Fiyatlandırma</a>
-</div>
+    <a href="admin-list.html" class="menu-btn" style="margin:10px; padding:10px 20px; background:#007BFF; color:white; border-radius:6px; text-decoration:none;">📋 Siparişler</a>
+    <a href="admin-uyeler.html" class="menu-btn" style="margin:10px; padding:10px 20px; background:#17a2b8; color:white; border-radius:6px; text-decoration:none;">👤 Kayıtlı Müşteriler</a>
+    <a href="admin-analytics.html" class="menu-btn" style="margin:10px; padding:10px 20px; background:#28a745; color:white; border-radius:6px; text-decoration:none;">📊 Analitik</a>
+    <a href="fiyatlandirma.html" class="menu-btn" style="margin:10px; padding:10px 20px; background:#ffc107; color:black; border-radius:6px; text-decoration:none;">💸 Fiyatlandırma</a>
+  </div>
 
   <div class="container">
     <h2>Fiyatlandırma Yönetim Paneli</h2>
@@ -32,22 +32,10 @@
         <th>Kategori</th>
         <th>Oran (%)</th>
       </tr>
-      <tr>
-        <td>Mobilya</td>
-        <td><input type="number" id="oran_mobilya"></td>
-      </tr>
-      <tr>
-        <td>Elektronik</td>
-        <td><input type="number" id="oran_elektronik"></td>
-      </tr>
-      <tr>
-        <td>Giyim</td>
-        <td><input type="number" id="oran_giyim"></td>
-      </tr>
-      <tr>
-        <td>Kozmetik</td>
-        <td><input type="number" id="oran_kozmetik"></td>
-      </tr>
+      <tr><td>Mobilya</td><td><input type="number" id="oran_mobilya"></td></tr>
+      <tr><td>Elektronik</td><td><input type="number" id="oran_elektronik"></td></tr>
+      <tr><td>Giyim</td><td><input type="number" id="oran_giyim"></td></tr>
+      <tr><td>Kozmetik</td><td><input type="number" id="oran_kozmetik"></td></tr>
     </table>
 
     <h3>🚚 Şehir Bazlı Teslimat Ücretleri (₺)</h3>
@@ -56,26 +44,11 @@
         <th>Şehir</th>
         <th>Ücret (₺)</th>
       </tr>
-      <tr>
-        <td>Lefkoşa</td>
-        <td><input type="number" id="ucret_lefkosa"></td>
-      </tr>
-      <tr>
-        <td>Girne</td>
-        <td><input type="number" id="ucret_girne"></td>
-      </tr>
-      <tr>
-        <td>Mağusa</td>
-        <td><input type="number" id="ucret_magusa"></td>
-      </tr>
-      <tr>
-        <td>Güzelyurt</td>
-        <td><input type="number" id="ucret_guzelyurt"></td>
-      </tr>
-      <tr>
-        <td>İskele</td>
-        <td><input type="number" id="ucret_iskele"></td>
-      </tr>
+      <tr><td>Lefkoşa</td><td><input type="number" id="ucret_lefkosa"></td></tr>
+      <tr><td>Girne</td><td><input type="number" id="ucret_girne"></td></tr>
+      <tr><td>Gazimağusa</td><td><input type="number" id="ucret_magusa"></td></tr>
+      <tr><td>Güzelyurt</td><td><input type="number" id="ucret_guzelyurt"></td></tr>
+      <tr><td>İskele</td><td><input type="number" id="ucret_iskele"></td></tr>
     </table>
 
     <button onclick="kaydet()">💾 Kaydet</button>
@@ -91,11 +64,11 @@
       };
 
       const sehirUcretleri = {
-        Lefkoşa: parseFloat(document.getElementById("ucret_lefkosa").value),
-        Girne: parseFloat(document.getElementById("ucret_girne").value),
-        Gazimağusa: parseFloat(document.getElementById("ucret_magusa").value),
-        Güzelyurt: parseFloat(document.getElementById("ucret_guzelyurt").value),
-        İskele: parseFloat(document.getElementById("ucret_iskele").value)
+        "Lefkoşa": parseFloat(document.getElementById("ucret_lefkosa").value),
+        "Girne": parseFloat(document.getElementById("ucret_girne").value),
+        "Gazimağusa": parseFloat(document.getElementById("ucret_magusa").value),
+        "Güzelyurt": parseFloat(document.getElementById("ucret_guzelyurt").value),
+        "İskele": parseFloat(document.getElementById("ucret_iskele").value)
       };
 
       localStorage.setItem("kategoriOranlari", JSON.stringify(kategoriOranlari));
@@ -108,16 +81,16 @@
       const kategoriOranlari = JSON.parse(localStorage.getItem("kategoriOranlari")) || {};
       const sehirUcretleri = JSON.parse(localStorage.getItem("sehirUcretleri")) || {};
 
-      document.getElementById("oran_mobilya").value = kategoriOranlari.mobilya * 100 || "";
-      document.getElementById("oran_elektronik").value = kategoriOranlari.elektronik * 100 || "";
-      document.getElementById("oran_giyim").value = kategoriOranlari.giyim * 100 || "";
-      document.getElementById("oran_kozmetik").value = kategoriOranlari.kozmetik * 100 || "";
+      document.getElementById("oran_mobilya").value = (kategoriOranlari.mobilya || 0) * 100;
+      document.getElementById("oran_elektronik").value = (kategoriOranlari.elektronik || 0) * 100;
+      document.getElementById("oran_giyim").value = (kategoriOranlari.giyim || 0) * 100;
+      document.getElementById("oran_kozmetik").value = (kategoriOranlari.kozmetik || 0) * 100;
 
-      document.getElementById("ucret_lefkosa").value = sehirUcretleri.Lefkoşa || "";
-      document.getElementById("ucret_girne").value = sehirUcretleri.Girne || "";
+      document.getElementById("ucret_lefkosa").value = sehirUcretleri["Lefkoşa"] || "";
+      document.getElementById("ucret_girne").value = sehirUcretleri["Girne"] || "";
       document.getElementById("ucret_magusa").value = sehirUcretleri["Gazimağusa"] || "";
-      document.getElementById("ucret_guzelyurt").value = sehirUcretleri.Güzelyurt || "";
-      document.getElementById("ucret_iskele").value = sehirUcretleri.İskele || "";
+      document.getElementById("ucret_guzelyurt").value = sehirUcretleri["Güzelyurt"] || "";
+      document.getElementById("ucret_iskele").value = sehirUcretleri["İskele"] || "";
     }
 
     window.onload = yukle;
