@@ -47,6 +47,12 @@
           .get();
 
         if (!query.empty) {
+          const user = query.docs[0].data();
+          const adSoyad = user.ad + " " + user.soyad;
+
+          localStorage.setItem("kullaniciAdi", adSoyad);
+          localStorage.setItem("kullaniciEmail", email);
+
           alert("Giriş başarılı!");
           window.location.href = "index.html";
         } else {
@@ -59,3 +65,4 @@
   </script>
 </body>
 </html>
+
