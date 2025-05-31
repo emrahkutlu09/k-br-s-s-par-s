@@ -72,6 +72,10 @@
         <td>Güzelyurt</td>
         <td><input type="number" id="ucret_guzelyurt"></td>
       </tr>
+      <tr>
+        <td>İskele</td>
+        <td><input type="number" id="ucret_iskele"></td>
+      </tr>
     </table>
 
     <button onclick="kaydet()">💾 Kaydet</button>
@@ -79,39 +83,41 @@
 
   <script>
     function kaydet() {
-      const oranlar = {
-        mobilya: document.getElementById("oran_mobilya").value,
-        elektronik: document.getElementById("oran_elektronik").value,
-        giyim: document.getElementById("oran_giyim").value,
-        kozmetik: document.getElementById("oran_kozmetik").value
+      const kategoriOranlari = {
+        mobilya: parseFloat(document.getElementById("oran_mobilya").value) / 100,
+        elektronik: parseFloat(document.getElementById("oran_elektronik").value) / 100,
+        giyim: parseFloat(document.getElementById("oran_giyim").value) / 100,
+        kozmetik: parseFloat(document.getElementById("oran_kozmetik").value) / 100
       };
 
-      const ucretler = {
-        lefkosa: document.getElementById("ucret_lefkosa").value,
-        girne: document.getElementById("ucret_girne").value,
-        magusa: document.getElementById("ucret_magusa").value,
-        guzelyurt: document.getElementById("ucret_guzelyurt").value
+      const sehirUcretleri = {
+        Lefkoşa: parseFloat(document.getElementById("ucret_lefkosa").value),
+        Girne: parseFloat(document.getElementById("ucret_girne").value),
+        Gazimağusa: parseFloat(document.getElementById("ucret_magusa").value),
+        Güzelyurt: parseFloat(document.getElementById("ucret_guzelyurt").value),
+        İskele: parseFloat(document.getElementById("ucret_iskele").value)
       };
 
-      localStorage.setItem("oranlar", JSON.stringify(oranlar));
-      localStorage.setItem("ucretler", JSON.stringify(ucretler));
+      localStorage.setItem("kategoriOranlari", JSON.stringify(kategoriOranlari));
+      localStorage.setItem("sehirUcretleri", JSON.stringify(sehirUcretleri));
 
-      alert("Fiyatlar başarıyla kaydedildi ✅");
+      alert("✔️ Fiyatlar başarıyla kaydedildi!");
     }
 
     function yukle() {
-      const oranlar = JSON.parse(localStorage.getItem("oranlar")) || {};
-      const ucretler = JSON.parse(localStorage.getItem("ucretler")) || {};
+      const kategoriOranlari = JSON.parse(localStorage.getItem("kategoriOranlari")) || {};
+      const sehirUcretleri = JSON.parse(localStorage.getItem("sehirUcretleri")) || {};
 
-      document.getElementById("oran_mobilya").value = oranlar.mobilya || "";
-      document.getElementById("oran_elektronik").value = oranlar.elektronik || "";
-      document.getElementById("oran_giyim").value = oranlar.giyim || "";
-      document.getElementById("oran_kozmetik").value = oranlar.kozmetik || "";
+      document.getElementById("oran_mobilya").value = kategoriOranlari.mobilya * 100 || "";
+      document.getElementById("oran_elektronik").value = kategoriOranlari.elektronik * 100 || "";
+      document.getElementById("oran_giyim").value = kategoriOranlari.giyim * 100 || "";
+      document.getElementById("oran_kozmetik").value = kategoriOranlari.kozmetik * 100 || "";
 
-      document.getElementById("ucret_lefkosa").value = ucretler.lefkosa || "";
-      document.getElementById("ucret_girne").value = ucretler.girne || "";
-      document.getElementById("ucret_magusa").value = ucretler.magusa || "";
-      document.getElementById("ucret_guzelyurt").value = ucretler.guzelyurt || "";
+      document.getElementById("ucret_lefkosa").value = sehirUcretleri.Lefkoşa || "";
+      document.getElementById("ucret_girne").value = sehirUcretleri.Girne || "";
+      document.getElementById("ucret_magusa").value = sehirUcretleri["Gazimağusa"] || "";
+      document.getElementById("ucret_guzelyurt").value = sehirUcretleri.Güzelyurt || "";
+      document.getElementById("ucret_iskele").value = sehirUcretleri.İskele || "";
     }
 
     window.onload = yukle;
