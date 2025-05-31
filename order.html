@@ -46,7 +46,7 @@
     <option value="İskele">İskele</option>
   </select>
 
-  <div id="sonuc">Toplam Ücret: ₺0</div>
+  <div id="sonuc">Toplam Üret: ₺0</div>
   <button type="submit">Siparişi Gönder</button>
 </form>
 
@@ -64,27 +64,32 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  let fiyatlar = {
-    kategoriler: {},
-    adresler: {}
-  };
+  function getFiyatlar() {
+    const oranlar = JSON.parse(localStorage.getItem("oranlar")) || {};
+    const ucretler = JSON.parse(localStorage.getItem("ucretler")) || {};
 
-  fetch("fiyatlar.json")
-    .then(res => res.json())
-    .then(data => {
-      fiyatlar = data;
-      hesapla();
-    });
+    return {
+      kategoriler: {
+        mobilya: parseFloat(oranlar.mobilya || 0) / 100,
+        elektronik: parseFloat(oranlar.elektronik || 0) / 100,
+        giyim: parseFloat(oranlar.giyim || 0) / 100,
+        kozmetik: parseFloat(oranlar.kozmetik || 0) / 100
+      },
+      adresler: {
+        Lefkoşa: parseFloat(ucretler.lefkosa || 0),
+        Girne: parseFloat(ucretler.girne || 0),
+        Gazimağusa: parseFloat(ucretler.magusa || 0),
+        Güzelyurt: parseFloat(ucretler.guzelyurt || 0),
+        İskele: parseFloat(ucretler.iskele || 0)
+      }
+    };
+  }
 
   document.getElementById("fiyat").addEventListener("input", hesapla);
   document.getElementById("kategori").addEventListener("change", hesapla);
-  document.getElementById("teslimat").addEventListener("change", (e) => {
+  document.getElementById("teslimat").addEventListener("change", function(e) {
     const adresSecimi = document.getElementById("adresSecimi");
-    if (e.target.value === "eve") {
-      adresSecimi.style.display = "block";
-    } else {
-      adresSecimi.style.display = "none";
-    }
+    adresSecimi.style.display = (e.target.value === "eve") ? "block" : "none";
     hesapla();
   });
   document.getElementById("adresSecimi").addEventListener("change", hesapla);
@@ -94,17 +99,18 @@
     const kategori = document.getElementById("kategori").value;
     const teslimat = document.getElementById("teslimat").value;
     const sehir = document.getElementById("adresSecimi").value;
+    const fiyatlar = getFiyatlar();
 
     if (isNaN(fiyat) || kategori === "") {
-      document.getElementById("sonuc").innerText = "Toplam Ücret: ₺0";
+      document.getElementById("sonuc").innerText = "Toplam Üret: ₺0";
       return;
     }
 
     const oran = fiyatlar.kategoriler[kategori] || 0;
     const sehirUcreti = (teslimat === "eve") ? (fiyatlar.adresler[sehir] || 0) : 0;
-
     const toplam = Math.round(fiyat * (1 + oran) + sehirUcreti);
-    document.getElementById("sonuc").innerText = `Toplam Ücret: ₺${toplam}`;
+
+    document.getElementById("sonuc").innerText = `Toplam Üret: ₺${toplam}`;
   }
 
   document.getElementById("siparisForm").addEventListener("submit", function(e) {
@@ -121,6 +127,7 @@
     const kategori = document.getElementById("kategori").value;
     const teslimat = document.getElementById("teslimat").value;
     const sehir = document.getElementById("adresSecimi").value;
+    const fiyatlar = getFiyatlar();
 
     if (teslimat === "eve" && sehir === "") {
       alert("Lütfen bir şehir seçiniz.");
@@ -144,7 +151,7 @@
       alert("✅ Sipariş başarıyla kaydedildi!");
       document.getElementById("siparisForm").reset();
       document.getElementById("adresSecimi").style.display = "none";
-      document.getElementById("sonuc").innerText = "Toplam Ücret: ₺0";
+      document.getElementById("sonuc").innerText = "Toplam Üret: ₺0";
     }).catch((error) => {
       alert("❌ Hata oluştu: " + error.message);
     });
