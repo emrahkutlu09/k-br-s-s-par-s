@@ -4,61 +4,59 @@
   <meta charset="UTF-8">
   <title>Giriş Yap</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: Arial; background: #f0f0f0; padding: 40px; }
+    form { background: white; padding: 20px; border-radius: 8px; max-width: 350px; margin: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    input { display: block; width: 100%; margin-bottom: 15px; padding: 10px; border-radius: 4px; border: 1px solid #ccc; }
+    button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center;">Giriş Yap</h2>
+  <form id="girisFormu">
+    <input type="email" id="email" placeholder="E-posta" required>
+    <input type="password" id="sifre" placeholder="Şifre" required>
+    <button type="submit">Giriş Yap</button>
+  </form>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBCbKtD6jPE653IYwtTWo2fH93JXX4MN74",
       authDomain: "kibrissiparissistemi.firebaseapp.com",
       projectId: "kibrissiparissistemi",
-      storageBucket: "kibrissiparissistemi.firebasestorage.app",
+      storageBucket: "kibrissiparissistemi.appspot.com",
       messagingSenderId: "263531733235",
-      appId: "1:263531733235:web:82efdf39ed758a22465786",
-      measurementId: "G-JK5S6L90Q5"
+      appId: "1:263531733235:web:82efdf39ed758a22465786"
     };
 
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    function girisYap(event) {
-      event.preventDefault();
+    document.getElementById("girisFormu").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
       const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+      const sifre = document.getElementById("sifre").value;
 
-      auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
+      try {
+        const query = await db.collection("uyeler")
+          .where("email", "==", email)
+          .where("sifre", "==", sifre)
+          .get();
+
+        if (!query.empty) {
           alert("Giriş başarılı!");
-          window.location.href = "order.html";
-        })
-        .catch((error) => {
-          alert("Hata: " + error.message);
-        });
-    }
-
-    function googleIleGiris() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .then((result) => {
-          alert("Google ile giriş başarılı!");
-          window.location.href = "order.html";
-        })
-        .catch((error) => {
-          alert("Google Giriş Hatası: " + error.message);
-        });
-    }
+          window.location.href = "index.html";
+        } else {
+          alert("E-posta veya şifre hatalı.");
+        }
+      } catch (error) {
+        alert("Hata: " + error.message);
+      }
+    });
   </script>
-</head>
-<body style="font-family:sans-serif;background:#f4f4f4;padding:40px;">
-  <h2 style="text-align:center;">Giriş Yap</h2>
-  <form onsubmit="girisYap(event)" style="max-width:400px;margin:auto;background:white;padding:30px;border-radius:10px;">
-    <input type="email" id="email" placeholder="E-posta" required style="width:100%;padding:10px;margin-bottom:15px;">
-    <input type="password" id="password" placeholder="Şifre" required style="width:100%;padding:10px;margin-bottom:15px;">
-    <button type="submit" style="width:100%;padding:12px;background:#28a745;color:white;border:none;border-radius:5px;">Giriş Yap</button>
-  </form>
-
-  <div style="text-align:center;margin-top:20px;">
-    <button onclick="googleIleGiris()" style="background:#db4437;color:white;padding:12px 20px;border:none;border-radius:5px;font-weight:bold;">
-      Google ile Giriş Yap
-    </button>
-  </div>
 </body>
 </html>
+
