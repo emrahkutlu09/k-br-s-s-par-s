@@ -11,6 +11,7 @@
     input, select { width: 100%; padding: 10px; margin-bottom: 15px; }
     button { width: 100%; padding: 12px; background: #007BFF; color: white; border: none; border-radius: 5px; font-size: 16px; }
     #sonuc { margin-top: 20px; font-weight: bold; text-align: center; }
+    small { display: block; margin-top: -10px; margin-bottom: 15px; color: #555; }
   </style>
 </head>
 <body>
@@ -19,6 +20,10 @@
 
 <form id="siparisForm">
   <input type="text" id="urunLink" placeholder="Ürün Linki (https://...)" required>
+
+  <input type="text" id="siparisKodu" placeholder="Sipariş Kodu">
+  <small>Eğer ürünü satın aldıysanız sipariş kodunu giriniz.</small>
+
   <input type="number" id="fiyat" placeholder="Türkiye Fiyatı (₺)" required>
 
   <select id="kategori" required>
@@ -39,9 +44,8 @@
     <option value="">Şehir Seçin</option>
     <option value="Lefkoşa">Lefkoşa</option>
     <option value="Girne">Girne</option>
-    <option value="Gazimağusa">Gazimağusa</option>
+    <option value="Mağusa">Mağusa</option>
     <option value="Güzelyurt">Güzelyurt</option>
-    <option value="İskele">İskele</option>
   </select>
 
   <div id="sonuc">Toplam Ücret: ₺0</div>
@@ -55,92 +59,87 @@
     projectId: "kibrissiparissistemi",
     storageBucket: "kibrissiparissistemi.firebasestorage.app",
     messagingSenderId: "263531733235",
-    appId: "1:263531733235:web:82efdf39ed758a22465786",
-    measurementId: "G-JK5S6L90Q5"
+    appId: "1:263531733235:web:82efdf39ed758a22465786"
   };
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  const fiyatInput = document.getElementById("fiyat");
-  const kategoriSelect = document.getElementById("kategori");
-  const teslimatSelect = document.getElementById("teslimat");
-  const sehirSelect = document.getElementById("sehir");
-  const sonucDiv = document.getElementById("sonuc");
-
-  let oranlar = {};
+  let kategoriOranlari = {};
   let sehirUcretleri = {};
 
-  async function verileriCek() {
-    const oranSnap = await db.collection("ayarlar").doc("kategoriOranlari").get();
-    const sehirSnap = await db.collection("ayarlar").doc("sehirUcretleri").get();
+  db.collection("ayarlar").doc("fiyatlar").get().then(doc => {
+    if (doc.exists) {
+      const data = doc.data();
+      kategoriOranlari = data.kategoriler || {};
+      sehirUcretleri = data.sehirler || {};
+    }
+  });
 
-    oranlar = oranSnap.exists ? oranSnap.data() : {};
-    sehirUcretleri = sehirSnap.exists ? sehirSnap.data() : {};
-  }
-
-  fiyatInput.addEventListener("input", fiyatHesapla);
-  kategoriSelect.addEventListener("change", fiyatHesapla);
-  teslimatSelect.addEventListener("change", () => {
-    if (teslimatSelect.value === "eve") {
-      sehirSelect.style.display = "block";
+  document.getElementById("teslimat").addEventListener("change", function () {
+    const sehirSecim = document.getElementById("sehir");
+    if (this.value === "eve") {
+      sehirSecim.style.display = "block";
     } else {
-      sehirSelect.style.display = "none";
+      sehirSecim.style.display = "none";
     }
     fiyatHesapla();
   });
-  sehirSelect.addEventListener("change", fiyatHesapla);
 
-  async function fiyatHesapla() {
-    const fiyat = parseFloat(fiyatInput.value);
-    const kategori = kategoriSelect.value;
-    const teslimat = teslimatSelect.value;
-    const sehir = sehirSelect.value;
+  document.getElementById("fiyat").addEventListener("input", fiyatHesapla);
+  document.getElementById("kategori").addEventListener("change", fiyatHesapla);
+  document.getElementById("sehir").addEventListener("change", fiyatHesapla);
+
+  function fiyatHesapla() {
+    const fiyat = parseFloat(document.getElementById("fiyat").value);
+    const kategori = document.getElementById("kategori").value;
+    const teslimat = document.getElementById("teslimat").value;
+    const sehir = document.getElementById("sehir").value;
 
     if (isNaN(fiyat) || kategori === "") {
-      sonucDiv.innerText = "Toplam Ücret: ₺0";
+      document.getElementById("sonuc").innerText = "Toplam Ücret: ₺0";
       return;
     }
 
-    let oran = oranlar[kategori] || 0.5;
-    let toplam = fiyat + (fiyat * oran);
+    const oran = kategoriOranlari[kategori] || 0;
+    const sehirUcreti = teslimat === "eve" ? (sehirUretleri[sehir] || 0) : 0;
+    const toplam = Math.round(fiyat * (1 + oran) + sehirUcreti);
 
-    if (teslimat === "eve" && sehir && sehirUcretleri[sehir]) {
-      toplam += parseFloat(sehirUcretleri[sehir]);
-    }
-
-    sonucDiv.innerText = `Toplam Ücret: ₺${Math.round(toplam)}`;
+    document.getElementById("sonuc").innerText = `Toplam Ücret: ₺${toplam}`;
   }
 
-  document.getElementById("siparisForm").addEventListener("submit", function(e) {
+  document.getElementById("siparisForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
     const urunLink = document.getElementById("urunLink").value;
-    const fiyat = parseFloat(fiyatInput.value);
-    const kategori = kategoriSelect.value;
-    const teslimat = teslimatSelect.value;
-    const sehir = sehirSelect.value;
-    const toplam = sonucDiv.innerText.split("₺")[1];
+    const siparisKodu = document.getElementById("siparisKodu").value;
+    const fiyat = parseFloat(document.getElementById("fiyat").value);
+    const kategori = document.getElementById("kategori").value;
+    const teslimat = document.getElementById("teslimat").value;
+    const sehir = document.getElementById("sehir").value;
+
+    const oran = kategoriOranlari[kategori] || 0;
+    const sehirUcreti = teslimat === "eve" ? (sehirUretleri[sehir] || 0) : 0;
+    const toplam = Math.round(fiyat * (1 + oran) + sehirUcreti);
 
     db.collection("siparisler").add({
       urunLink,
+      siparisKodu,
       fiyat,
       kategori,
       teslimat,
-      sehir: teslimat === "eve" ? sehir : "",
+      sehir,
       toplam,
       zaman: new Date()
     }).then(() => {
       alert("✅ Sipariş başarıyla kaydedildi!");
       document.getElementById("siparisForm").reset();
-      sonucDiv.innerText = "Toplam Ücret: ₺0";
-      sehirSelect.style.display = "none";
+      document.getElementById("sehir").style.display = "none";
+      document.getElementById("sonuc").innerText = "Toplam Ücret: ₺0";
     }).catch((error) => {
       alert("❌ Hata oluştu: " + error.message);
     });
   });
-
-  verileriCek();
 </script>
 
 </body>
