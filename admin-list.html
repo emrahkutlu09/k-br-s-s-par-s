@@ -96,6 +96,11 @@
   </style>
 </head>
 <body>
+  <div style="text-align:center; margin:20px 20px;">
+  <button onclick="window.location.href='admin-list.html'">📦 Siparişler</button>
+  <button onclick="window.location.href='admin-uyeler.html'">👥 Kayıtlı Üyeler</button>
+</div>
+
   <script>
     if (localStorage.getItem("girisYapildi") !== "true") {
       window.location.href = "admin-login.html";
