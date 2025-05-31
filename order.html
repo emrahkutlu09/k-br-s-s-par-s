@@ -102,7 +102,7 @@
     }
 
     const oran = kategoriOranlari[kategori] || 0;
-    const sehirUcreti = teslimat === "eve" ? (sehirUretleri[sehir] || 0) : 0;
+    const sehirUcreti = teslimat === "eve" ? (sehirUcretleri[sehir] || 0) : 0;
     const toplam = Math.round(fiyat * (1 + oran) + sehirUcreti);
 
     document.getElementById("sonuc").innerText = `Toplam Ücret: ₺${toplam}`;
