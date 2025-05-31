@@ -7,11 +7,11 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
     body { font-family: sans-serif; background: #f4f4f4; padding: 40px; }
-    form { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 10px; }
-    input, select, textarea { width: 100%; padding: 10px; margin-bottom: 15px; }
+    form { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 10px; }
+    input, select, textarea { width: 100%; padding: 10px; margin-bottom: 15px; font-size: 16px; }
     button { width: 100%; padding: 12px; background: #007BFF; color: white; border: none; border-radius: 5px; font-size: 16px; }
     #sonuc { margin-top: 20px; font-weight: bold; text-align: center; }
-    #adresAlani { display: none; }
+    #sehirSecimi, #adresTextarea { display: none; }
   </style>
 </head>
 <body>
@@ -19,7 +19,6 @@
 <h2 style="text-align:center;">Sipariş Formu</h2>
 
 <form id="siparisForm">
-  <input type="text" id="siparisKodu" placeholder="Sipariş Kodu (Eğer ürünü satın aldıysanız sipariş kodunu giriniz)" required>
   <input type="text" id="urunLink" placeholder="Ürün Linki (https://...)" required>
   <input type="number" id="fiyat" placeholder="Türkiye Fiyatı (₺)" required>
 
@@ -31,20 +30,23 @@
     <option value="kozmetik">Kozmetik</option>
   </select>
 
-  <select id="teslimat" required onchange="teslimatDegisti()">
+  <select id="teslimat" required>
     <option value="">Teslimat Tipi</option>
     <option value="depo">Depodan Teslim</option>
     <option value="eve">Eve Teslim</option>
   </select>
 
-  <div id="adresAlani">
-    <select id="sehir">
-      <option value="">Şehir Seçin</option>
-      <option value="lefkoşa">Lefkoşa</option>
-      <option value="girne">Girne</option>
-      <option value="mağusa">Mağusa</option>
-    </select>
-  </div>
+  <select id="sehirSecimi">
+    <option value="">Şehir Seçin</option>
+    <option value="lefkosa">Lefkoşa</option>
+    <option value="girne">Girne</option>
+    <option value="magusa">Mağusa</option>
+  </select>
+
+  <textarea id="adresTextarea" rows="3" placeholder="Açık adresinizi buraya yazın..."></textarea>
+
+  <input type="text" id="siparisKodu" placeholder="Sipariş Kodu (örn. 101-1)" required>
+  <small style="color:#555; display:block; margin-top:-10px; margin-bottom:15px;">Eğer ürünü satın aldıysanız sipariş kodunu giriniz.</small>
 
   <div id="sonuc">Toplam Ücret: ₺0</div>
   <button type="submit">Siparişi Gönder</button>
@@ -67,24 +69,25 @@
   const fiyatInput = document.getElementById("fiyat");
   const kategoriSelect = document.getElementById("kategori");
   const teslimatSelect = document.getElementById("teslimat");
-  const sehirSelect = document.getElementById("sehir");
+  const sehirSelect = document.getElementById("sehirSecimi");
+  const adresTextarea = document.getElementById("adresTextarea");
   const sonucDiv = document.getElementById("sonuc");
-  const siparisKoduInput = document.getElementById("siparisKodu");
-  const adresAlani = document.getElementById("adresAlani");
 
-  fiyatInput.addEventListener("input", fiyatHesapla);
-  kategoriSelect.addEventListener("change", fiyatHesapla);
-  teslimatSelect.addEventListener("change", fiyatHesapla);
-  sehirSelect.addEventListener("change", fiyatHesapla);
+  [fiyatInput, kategoriSelect, teslimatSelect, sehirSelect].forEach(el => {
+    el.addEventListener("input", fiyatHesapla);
+    el.addEventListener("change", fiyatHesapla);
+  });
 
-  function teslimatDegisti() {
-    if (teslimatSelect.value === "eve") {
-      adresAlani.style.display = "block";
+  teslimatSelect.addEventListener("change", () => {
+    const secim = teslimatSelect.value;
+    if (secim === "eve") {
+      sehirSelect.style.display = "block";
+      adresTextarea.style.display = "block";
     } else {
-      adresAlani.style.display = "none";
+      sehirSelect.style.display = "none";
+      adresTextarea.style.display = "none";
     }
-    fiyatHesapla();
-  }
+  });
 
   function fiyatHesapla() {
     const fiyat = parseFloat(fiyatInput.value);
@@ -92,65 +95,63 @@
     const teslimat = teslimatSelect.value;
     const sehir = sehirSelect.value;
 
-    if (isNaN(fiyat) || kategori === "") {
+    const oranlar = JSON.parse(localStorage.getItem("kategoriOranlari")) || {};
+    const sehirFiyatlar = JSON.parse(localStorage.getItem("sehirUcretleri")) || {};
+
+    let oran = oranlar[kategori] || 0;
+    let sehirUcreti = teslimat === "eve" ? (sehirFiyatlar[sehir] || 0) : 0;
+
+    if (isNaN(fiyat)) {
       sonucDiv.innerText = "Toplam Ücret: ₺0";
       return;
     }
 
-    let oranlar = JSON.parse(localStorage.getItem("kategoriOranlari") || "{}");
-    let sehirFiyatlari = JSON.parse(localStorage.getItem("sehirFiyatlari") || "{}");
-
-    const oran = oranlar[kategori] || 0;
-    let toplam = Math.round(fiyat * (1 + oran / 100));
-
-    if (teslimat === "eve" && sehir && sehirFiyatlari[sehir]) {
-      toplam += parseFloat(sehirFiyatlari[sehir]);
-    }
-
+    const toplam = Math.round(fiyat + (fiyat * oran / 100) + sehirUcreti);
     sonucDiv.innerText = `Toplam Ücret: ₺${toplam}`;
   }
 
   document.getElementById("siparisForm").addEventListener("submit", function(e) {
     e.preventDefault();
 
-    const siparisKodu = siparisKoduInput.value.trim();
     const urunLink = document.getElementById("urunLink").value;
     const fiyat = parseFloat(fiyatInput.value);
     const kategori = kategoriSelect.value;
     const teslimat = teslimatSelect.value;
     const sehir = sehirSelect.value;
+    const adres = adresTextarea.value;
+    const kod = document.getElementById("siparisKodu").value;
 
-    if (!siparisKodu) {
-      alert("Lütfen sipariş kodunu giriniz.");
+    if (!kod) {
+      alert("Sipariş kodu zorunludur.");
       return;
     }
-    if (teslimat === "eve" && !sehir) {
-      alert("Lütfen teslimat yapılacak şehri seçiniz.");
+
+    if (teslimat === "eve" && (!sehir || !adres.trim())) {
+      alert("Lütfen şehir ve açık adres bilgilerini giriniz.");
       return;
     }
 
-    let oranlar = JSON.parse(localStorage.getItem("kategoriOranlari") || "{}");
-    let sehirFiyatlari = JSON.parse(localStorage.getItem("sehirFiyatlari") || "{}");
-
-    const oran = oranlar[kategori] || 0;
-    let toplam = Math.round(fiyat * (1 + oran / 100));
-    if (teslimat === "eve" && sehir && sehirFiyatlari[sehir]) {
-      toplam += parseFloat(sehirFiyatlari[sehir]);
-    }
+    const oranlar = JSON.parse(localStorage.getItem("kategoriOranlari")) || {};
+    const sehirFiyatlar = JSON.parse(localStorage.getItem("sehirUcretleri")) || {};
+    let oran = oranlar[kategori] || 0;
+    let sehirUcreti = teslimat === "eve" ? (sehirFiyatlar[sehir] || 0) : 0;
+    const toplam = Math.round(fiyat + (fiyat * oran / 100) + sehirUcreti);
 
     db.collection("siparisler").add({
-      siparisKodu,
       urunLink,
       fiyat,
       kategori,
       teslimat,
-      sehir: teslimat === "eve" ? sehir : "",
+      sehir,
+      adres,
       toplam,
+      siparisKodu: kod,
       zaman: new Date()
     }).then(() => {
-      alert("✅ Sipariş başarıyla kaydedildi!");
+      alert("✅ Sipariş başarıyla gönderildi.");
       document.getElementById("siparisForm").reset();
-      adresAlani.style.display = "none";
+      sehirSelect.style.display = "none";
+      adresTextarea.style.display = "none";
       sonucDiv.innerText = "Toplam Ücret: ₺0";
     }).catch((error) => {
       alert("❌ Hata oluştu: " + error.message);
