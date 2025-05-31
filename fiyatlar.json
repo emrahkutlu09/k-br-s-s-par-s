@@ -1,15 +1,30 @@
-{
-  "kategoriler": {
-    "mobilya": 0.7,
-    "elektronik": 0.65,
-    "giyim": 0.5,
-    "kozmetik": 0.5
-  },
-  "adresler": {
-    "Lefkoşa": 100,
-    "Girne": 120,
-    "Gazimağusa": 140,
-    "Güzelyurt": 110,
-    "İskele": 130
+<script>
+  let fiyatlar = {
+    kategoriler: {},
+    adresler: {}
+  };
+
+  function localVerileriYukle() {
+    const oranlar = JSON.parse(localStorage.getItem("oranlar")) || {};
+    const ucretler = JSON.parse(localStorage.getItem("ucretler")) || {};
+
+    fiyatlar.kategoriler = {
+      mobilya: parseFloat(oranlar.mobilya) / 100 || 0,
+      elektronik: parseFloat(oranlar.elektronik) / 100 || 0,
+      giyim: parseFloat(oranlar.giyim) / 100 || 0,
+      kozmetik: parseFloat(oranlar.kozmetik) / 100 || 0
+    };
+
+    fiyatlar.adresler = {
+      Lefkoşa: parseFloat(ucretler.lefkosa) || 0,
+      Girne: parseFloat(ucretler.girne) || 0,
+      Gazimağusa: parseFloat(ucretler.magusa) || 0,
+      Güzelyurt: parseFloat(ucretler.guzelyurt) || 0,
+      İskele: parseFloat(ucretler.iskele) || 0
+    };
+
+    hesapla(); // İlk yüklemede hesaplama yap
   }
-}
+
+  window.onload = localVerileriYukle;
+</script>
