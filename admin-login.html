@@ -2,73 +2,57 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>🔐 Admin Giriş</title>
+  <title>Admin Giriş</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f2f2f2;
+      background: #f1f1f1;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
     }
-    .login-container {
+    .giris-kutusu {
       background: white;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 400px;
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 30px;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
     input {
       width: 100%;
       padding: 10px;
-      margin: 10px 0;
+      margin-top: 10px;
+      margin-bottom: 15px;
       border: 1px solid #ccc;
-      border-radius: 8px;
+      border-radius: 5px;
     }
     button {
+      padding: 10px;
       width: 100%;
-      padding: 12px;
-      background-color: #007bff;
+      background: #007bff;
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 5px;
       cursor: pointer;
-      font-size: 16px;
-    }
-    .error {
-      color: red;
-      text-align: center;
-      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <div class="login-container">
+  <div class="giris-kutusu">
     <h2>Admin Giriş</h2>
-    <input type="text" id="username" placeholder="Kullanıcı Adı">
-    <input type="password" id="password" placeholder="Şifre">
+    <input type="password" id="sifre" placeholder="Şifreyi girin">
     <button onclick="girisYap()">Giriş Yap</button>
-    <div class="error" id="hataMesaji"></div>
+    <p id="uyari" style="color:red;"></p>
   </div>
 
   <script>
     function girisYap() {
-      const kullanici = document.getElementById("username").value;
-      const sifre = document.getElementById("password").value;
-      const hata = document.getElementById("hataMesaji");
-
-      // Basit sabit admin kontrolü
-      if (kullanici === "admin" && sifre === "1234") {
+      const sifre = document.getElementById("sifre").value;
+      if (sifre === "pufemo2025") {
         localStorage.setItem("girisYapildi", "true");
-        window.location.href = "admin-list.html"; // Giriş başarılıysa liste sayfasına geç
+        window.location.href = "admin-list.html";
       } else {
-        hata.innerText = "Kullanıcı adı veya şifre yanlış!";
+        document.getElementById("uyari").innerText = "❌ Şifre yanlış.";
       }
     }
   </script>
