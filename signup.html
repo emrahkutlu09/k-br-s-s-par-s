@@ -48,20 +48,23 @@
       const telefon = document.getElementById("telefon").value;
       const adres = document.getElementById("adres").value;
 
+      const [ad, soyad] = adSoyad.trim().split(" ");
+
       try {
         const sonuc = await auth.createUserWithEmailAndPassword(email, sifre);
         const kullanici = sonuc.user;
 
         await db.collection("uyeler").doc(kullanici.uid).set({
-          adSoyad,
+          ad,
+          soyad,
           email,
           telefon,
           adres,
-          sifre, // Şifreyi Firestore'a da kaydediyoruz
+          sifre,
           kayitTarihi: new Date()
         });
 
-        localStorage.setItem("kullaniciAdi", adSoyad); // Ad soyadı sakla
+        localStorage.setItem("kullanici", JSON.stringify({ ad, soyad, email }));
         alert("Kayıt başarılı!");
         window.location.href = "index.html";
       } catch (error) {
