@@ -8,10 +8,10 @@
   <style>
     body { font-family: sans-serif; background: #f4f4f4; padding: 40px; }
     form { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 10px; }
-    input, select, textarea { width: 100%; padding: 10px; margin-bottom: 15px; font-size: 16px; }
-    button { width: 100%; padding: 12px; background: #007BFF; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+    input, select, textarea { width: 100%; padding: 10px; margin-bottom: 15px; }
+    button { width: 100%; padding: 12px; background: #007BFF; color: white; border: none; border-radius: 5px; font-size: 16px; }
     #sonuc { margin-top: 20px; font-weight: bold; text-align: center; }
-    #adresAlani { display: none; }
+    #sehirSecim, #adresAlani { display: none; }
   </style>
 </head>
 <body>
@@ -20,8 +20,12 @@
 
 <form id="siparisForm">
   <input type="text" id="urunLink" placeholder="Ürün Linki (https://...)" required>
+  <small style="display:block; margin-bottom:10px; color:#555;">
+    Eğer ürünü satın aldıysanız sipariş kodunu giriniz.
+  </small>
+  <input type="text" id="siparisKodu" placeholder="Sipariş Kodu (örn. 101-1)" required>
   <input type="number" id="fiyat" placeholder="Türkiye Fiyatı (₺)" required>
-
+  
   <select id="kategori" required>
     <option value="">Kategori Seçin</option>
     <option value="mobilya">Mobilya</option>
@@ -36,17 +40,20 @@
     <option value="eve">Eve Teslim</option>
   </select>
 
-  <div id="adresAlani">
-    <label for="adresSecimi">Teslimat Adresi (Şehir):</label>
-    <select id="adresSecimi">
+  <div id="sehirSecim">
+    <select id="sehir">
       <option value="">Şehir Seçin</option>
-      <option value="Lefkoşa">Lefkoşa (+₺200)</option>
-      <option value="Gazimağusa">Gazimağusa (+₺250)</option>
-      <option value="Girne">Girne (+₺300)</option>
+      <option value="Lefkoşa">Lefkoşa</option>
+      <option value="Gazimağusa">Gazimağusa</option>
+      <option value="Girne">Girne</option>
+      <option value="Güzelyurt">Güzelyurt</option>
+      <option value="İskele">İskele</option>
     </select>
   </div>
 
-  <input type="text" id="siparisKodu" placeholder="Sipariş Kodu (Eğer ürünü satın aldıysanız sipariş kodunu giriniz)">
+  <div id="adresAlani">
+    <textarea id="adres" rows="3" placeholder="Teslimat adresinizi yazınız..."></textarea>
+  </div>
 
   <div id="sonuc">Toplam Ücret: ₺0</div>
   <button type="submit">Siparişi Gönder</button>
@@ -62,98 +69,102 @@
     appId: "1:263531733235:web:82efdf39ed758a22465786",
     measurementId: "G-JK5S6L90Q5"
   };
-  
+
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  const fiyatInput = document.getElementById("fiyat");
-  const kategoriSelect = document.getElementById("kategori");
-  const teslimatSelect = document.getElementById("teslimat");
-  const sehirSelect = document.getElementById("adresSecimi");
-  const sonucDiv = document.getElementById("sonuc");
-
-  const oranlar = {
-    mobilya: 0.70,
-    elektronik: 0.65,
-    giyim: 0.50,
-    kozmetik: 0.50
-  };
-
-  const teslimatUcretleri = {
-    "Lefkoşa": 200,
-    "Gazimağusa": 250,
-    "Girne": 300
-  };
-
-  fiyatInput.addEventListener("input", fiyatHesapla);
-  kategoriSelect.addEventListener("change", fiyatHesapla);
-  teslimatSelect.addEventListener("change", fiyatHesapla);
-  sehirSelect.addEventListener("change", fiyatHesapla);
+  document.getElementById("fiyat").addEventListener("input", fiyatHesapla);
+  document.getElementById("kategori").addEventListener("change", fiyatHesapla);
+  document.getElementById("sehir").addEventListener("change", fiyatHesapla);
 
   function teslimatDegisti() {
-    const teslimat = teslimatSelect.value;
-    document.getElementById("adresAlani").style.display = teslimat === "eve" ? "block" : "none";
+    const tip = document.getElementById("teslimat").value;
+    document.getElementById("sehirSecim").style.display = tip === "eve" ? "block" : "none";
+    document.getElementById("adresAlani").style.display = tip === "eve" ? "block" : "none";
     fiyatHesapla();
   }
 
   function fiyatHesapla() {
-    const fiyat = parseFloat(fiyatInput.value);
-    const kategori = kategoriSelect.value;
-    const teslimat = teslimatSelect.value;
-    const sehir = sehirSelect.value;
+    const fiyat = parseFloat(document.getElementById("fiyat").value);
+    const kategori = document.getElementById("kategori").value;
+    const teslimat = document.getElementById("teslimat").value;
+    const sehir = document.getElementById("sehir").value;
 
-    if (isNaN(fiyat) || kategori === "" || teslimat === "") {
-      sonucDiv.innerText = "Toplam Ücret: ₺0";
+    if (isNaN(fiyat) || kategori === "") {
+      document.getElementById("sonuc").innerText = "Toplam Ücret: ₺0";
       return;
     }
 
-    const hizmetOrani = oranlar[kategori] || 0;
-    const hizmetBedeli = Math.round(fiyat * hizmetOrani);
-    const sehirUcreti = teslimat === "eve" ? (teslimatUcretleri[sehir] || 0) : 0;
-    const toplam = fiyat + hizmetBedeli + sehirUcreti;
+    let oran = kategori === "mobilya" ? 0.70 : kategori === "elektronik" ? 0.65 : 0.50;
+    let toplam = Math.round(fiyat * (1 + oran));
 
-    sonucDiv.innerText = `Toplam Ücret: ₺${toplam}`;
+    const sehirFiyatlari = {
+      "Lefkoşa": 100,
+      "Gazimağusa": 120,
+      "Girne": 110,
+      "Güzelyurt": 130,
+      "İskele": 125
+    };
+
+    if (teslimat === "eve" && sehirFiyatlari[sehir]) {
+      toplam += sehirFiyatlari[sehir];
+    }
+
+    document.getElementById("sonuc").innerText = `Toplam Ücret: ₺${toplam}`;
   }
 
   document.getElementById("siparisForm").addEventListener("submit", function(e) {
     e.preventDefault();
 
     const urunLink = document.getElementById("urunLink").value;
-    const fiyat = parseFloat(fiyatInput.value);
-    const kategori = kategoriSelect.value;
-    const teslimat = teslimatSelect.value;
-    const sehir = sehirSelect.value;
-    const siparisKodu = document.getElementById("siparisKodu").value.trim();
+    const fiyat = parseFloat(document.getElementById("fiyat").value);
+    const kategori = document.getElementById("kategori").value;
+    const teslimat = document.getElementById("teslimat").value;
+    const sehir = document.getElementById("sehir") ? document.getElementById("sehir").value : "";
+    const siparisKodu = document.getElementById("siparisKodu").value;
+    const adres = document.getElementById("adres") ? document.getElementById("adres").value.trim() : "";
 
     if (!siparisKodu) {
-      alert("❗️Eğer ürünü satın aldıysanız sipariş kodunu giriniz.");
+      alert("Lütfen sipariş kodunu giriniz.");
       return;
     }
 
-    if (isNaN(fiyat) || kategori === "" || teslimat === "") {
-      alert("Lütfen tüm bilgileri eksiksiz doldurunuz.");
+    if (teslimat === "eve" && !adres) {
+      alert("Eve teslim için adres alanı boş bırakılamaz.");
       return;
     }
 
-    const hizmetOrani = oranlar[kategori] || 0;
-    const hizmetBedeli = Math.round(fiyat * hizmetOrani);
-    const sehirUcreti = teslimat === "eve" ? (teslimatUcretleri[sehir] || 0) : 0;
-    const toplam = fiyat + hizmetBedeli + sehirUcreti;
+    let oran = kategori === "mobilya" ? 0.70 : kategori === "elektronik" ? 0.65 : 0.50;
+    let toplam = Math.round(fiyat * (1 + oran));
+
+    const sehirFiyatlari = {
+      "Lefkoşa": 100,
+      "Gazimağusa": 120,
+      "Girne": 110,
+      "Güzelyurt": 130,
+      "İskele": 125
+    };
+
+    if (teslimat === "eve" && sehirFiyatlari[sehir]) {
+      toplam += sehirFiyatlari[sehir];
+    }
 
     db.collection("siparisler").add({
       urunLink,
       fiyat,
       kategori,
       teslimat,
-      sehir,
+      sehir: teslimat === "eve" ? sehir : "",
+      adres: teslimat === "eve" ? adres : "",
       siparisKodu,
       toplam,
       zaman: new Date()
     }).then(() => {
       alert("✅ Sipariş başarıyla kaydedildi!");
       document.getElementById("siparisForm").reset();
+      document.getElementById("sonuc").innerText = "Toplam Ücret: ₺0";
+      document.getElementById("sehirSecim").style.display = "none";
       document.getElementById("adresAlani").style.display = "none";
-      sonucDiv.innerText = "Toplam Ücret: ₺0";
     }).catch((error) => {
       alert("❌ Hata oluştu: " + error.message);
     });
