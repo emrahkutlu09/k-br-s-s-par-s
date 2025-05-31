@@ -41,26 +41,26 @@
       background-color: #e88b00;
     }
 
-    #kullanici-bilgi {
+    #kullanici-paneli {
       position: absolute;
       top: 20px;
       right: 20px;
-      font-size: 1em;
+      display: none;
+      align-items: center;
+      gap: 10px;
       background: rgba(0,0,0,0.6);
       padding: 10px 20px;
       border-radius: 8px;
+      color: white;
+      font-size: 1em;
     }
 
     #cikis-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      font-size: 1em;
       background: rgba(255, 0, 0, 0.7);
-      color: white;
-      padding: 10px 20px;
       border: none;
-      border-radius: 8px;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
       cursor: pointer;
     }
 
@@ -71,11 +71,16 @@
 </head>
 <body>
   <div class="hero">
-    <div id="kullanici-bilgi"></div>
-    <button id="cikis-btn" style="display: none;">🚪 Çıkış Yap</button>
+    <!-- Kullanıcı Paneli -->
+    <div id="kullanici-paneli">
+      <span id="kullanici-bilgi"></span>
+      <button id="cikis-btn">🚪 Çıkış Yap</button>
+    </div>
 
     <h1>Türkiye'den Kıbrıs'a Kolay Alışveriş</h1>
     <p>Trendyol, Hepsiburada ve diğer mağazalardan siparişinizi kolayca verin.</p>
+
+    <!-- Butonlar -->
     <div class="buttons" id="butonlar">
       <a href="order.html">🛒 Sipariş Ver</a>
       <a href="sepetim.html">🧾 Sepetim</a>
@@ -87,33 +92,32 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      try {
-        const kullaniciStr = localStorage.getItem("kullanici");
-        if (kullaniciStr) {
+      const kullaniciStr = localStorage.getItem("kullanici");
+      const panel = document.getElementById("kullanici-paneli");
+      const bilgi = document.getElementById("kullanici-bilgi");
+      const cikisBtn = document.getElementById("cikis-btn");
+
+      if (kullaniciStr) {
+        try {
           const kullanici = JSON.parse(kullaniciStr);
-          if (kullanici && kullanici.ad && kullanici.soyad) {
-            document.getElementById("kullanici-bilgi").innerText = `👤 ${kullanici.ad} ${kullanici.soyad}`;
+          if (kullanici.ad && kullanici.soyad) {
+            bilgi.innerText = `👤 ${kullanici.ad} ${kullanici.soyad}`;
+            panel.style.display = "flex";
 
-            // Kayıt Ol ve Giriş Yap butonlarını gizle
-            const kayitBtn = document.getElementById("kayitOlBtn");
-            const girisBtn = document.getElementById("girisYapBtn");
-            if (kayitBtn) kayitBtn.style.display = "none";
-            if (girisBtn) girisBtn.style.display = "none";
-
-            // Çıkış butonunu göster
-            const cikisBtn = document.getElementById("cikis-btn");
-            cikisBtn.style.display = "inline-block";
-
-            // Çıkış işlemine bağla
-            cikisBtn.addEventListener("click", () => {
-              localStorage.removeItem("kullanici");
-              window.location.reload();
-            });
+            // Giriş/Kayıt butonlarını gizle
+            document.getElementById("kayitOlBtn").style.display = "none";
+            document.getElementById("girisYapBtn").style.display = "none";
           }
+        } catch (e) {
+          console.warn("Kullanıcı verisi okunamadı:", e);
         }
-      } catch (e) {
-        console.warn("Kullanıcı bilgisi okunamadı:", e);
       }
+
+      // Çıkış işlemi
+      cikisBtn.addEventListener("click", () => {
+        localStorage.removeItem("kullanici");
+        window.location.reload();
+      });
     });
   </script>
 </body>
