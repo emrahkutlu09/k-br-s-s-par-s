@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Fiyatlandırma Paneli</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 40px; }
+    .container { max-width: 800px; margin: auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #333; margin-bottom: 30px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+    th, td { padding: 12px; border: 1px solid #ccc; text-align: center; }
+    th { background: #007bff; color: white; }
+    input[type="number"] { width: 80px; padding: 5px; text-align: center; }
+    button { background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+    button:hover { background: #218838; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Fiyatlandırma Yönetim Paneli</h2>
+
+    <h3>📦 Kategori Bazlı Oranlar (%)</h3>
+    <table>
+      <tr>
+        <th>Kategori</th>
+        <th>Oran (%)</th>
+      </tr>
+      <tr>
+        <td>Mobilya</td>
+        <td><input type="number" id="oran_mobilya"></td>
+      </tr>
+      <tr>
+        <td>Elektronik</td>
+        <td><input type="number" id="oran_elektronik"></td>
+      </tr>
+      <tr>
+        <td>Giyim</td>
+        <td><input type="number" id="oran_giyim"></td>
+      </tr>
+      <tr>
+        <td>Kozmetik</td>
+        <td><input type="number" id="oran_kozmetik"></td>
+      </tr>
+    </table>
+
+    <h3>🚚 Şehir Bazlı Teslimat Ücretleri (₺)</h3>
+    <table>
+      <tr>
+        <th>Şehir</th>
+        <th>Ücret (₺)</th>
+      </tr>
+      <tr>
+        <td>Lefkoşa</td>
+        <td><input type="number" id="ucret_lefkosa"></td>
+      </tr>
+      <tr>
+        <td>Girne</td>
+        <td><input type="number" id="ucret_girne"></td>
+      </tr>
+      <tr>
+        <td>Mağusa</td>
+        <td><input type="number" id="ucret_magusa"></td>
+      </tr>
+      <tr>
+        <td>Güzelyurt</td>
+        <td><input type="number" id="ucret_guzelyurt"></td>
+      </tr>
+    </table>
+
+    <button onclick="kaydet()">💾 Kaydet</button>
+  </div>
+
+  <script>
+    function kaydet() {
+      const oranlar = {
+        mobilya: document.getElementById("oran_mobilya").value,
+        elektronik: document.getElementById("oran_elektronik").value,
+        giyim: document.getElementById("oran_giyim").value,
+        kozmetik: document.getElementById("oran_kozmetik").value
+      };
+
+      const ucretler = {
+        lefkosa: document.getElementById("ucret_lefkosa").value,
+        girne: document.getElementById("ucret_girne").value,
+        magusa: document.getElementById("ucret_magusa").value,
+        guzelyurt: document.getElementById("ucret_guzelyurt").value
+      };
+
+      localStorage.setItem("oranlar", JSON.stringify(oranlar));
+      localStorage.setItem("ucretler", JSON.stringify(ucretler));
+
+      alert("Fiyatlar başarıyla kaydedildi ✅");
+    }
+
+    function yukle() {
+      const oranlar = JSON.parse(localStorage.getItem("oranlar")) || {};
+      const ucretler = JSON.parse(localStorage.getItem("ucretler")) || {};
+
+      document.getElementById("oran_mobilya").value = oranlar.mobilya || "";
+      document.getElementById("oran_elektronik").value = oranlar.elektronik || "";
+      document.getElementById("oran_giyim").value = oranlar.giyim || "";
+      document.getElementById("oran_kozmetik").value = oranlar.kozmetik || "";
+
+      document.getElementById("ucret_lefkosa").value = ucretler.lefkosa || "";
+      document.getElementById("ucret_girne").value = ucretler.girne || "";
+      document.getElementById("ucret_magusa").value = ucretler.magusa || "";
+      document.getElementById("ucret_guzelyurt").value = ucretler.guzelyurt || "";
+    }
+
+    window.onload = yukle;
+  </script>
+</body>
+</html>
