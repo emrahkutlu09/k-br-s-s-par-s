@@ -2,19 +2,20 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Paneli</title>
+  <title>Admin Sipariş Paneli</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f8f9fa;
-      margin: 0;
+      background: #f8f9fa;
       padding: 20px;
     }
-    .cikis-btn, .excel-butonu {
+    h2 {
+      text-align: center;
+    }
+    .cikis-btn {
       float: right;
       background-color: #6c757d;
       color: white;
@@ -22,38 +23,21 @@
       padding: 8px 12px;
       border-radius: 6px;
       cursor: pointer;
-      margin-left: 10px;
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-    .filtreler {
-      display: flex;
-      gap: 10px;
       margin-bottom: 20px;
-      justify-content: center;
-      flex-wrap: wrap;
     }
-    input[type="date"], input[type="text"] {
-      padding: 6px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+    .arama-panel {
+      margin-bottom: 20px;
+    }
+    input[type="text"], input[type="date"] {
+      padding: 5px;
+      margin-right: 10px;
     }
     .siparis-kart {
-      background-color: white;
       border: 1px solid #ccc;
-      border-left: 6px solid #198754;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    .siparis-kart p {
-      margin: 5px 0;
-    }
-    .sil, .durum-secim {
-      margin-top: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      background: #fff;
     }
     .sil {
       background-color: red;
@@ -63,142 +47,133 @@
       border-radius: 5px;
       cursor: pointer;
     }
-    .toplam-tutar {
-      margin-top: 20px;
-      font-weight: bold;
-      text-align: center;
-    }
   </style>
 </head>
 <body>
-<script>
-  if (localStorage.getItem("girisYapildi") !== "true") {
-    window.location.href = "admin-login.html";
-  }
-</script>
-
-<button class="excel-butonu">Excel'e Aktar</button>
-<button class="cikis-btn" onclick="cikisYap()">Çıkış Yap</button>
-<h2>📋 Sipariş Listesi</h2>
-
-<div class="filtreler">
-  <input type="text" id="arama" placeholder="🔍 Siparişlerde Ara">
-  <input type="date" id="tarih1">
-  <input type="date" id="tarih2">
-</div>
-
-<div id="siparisKutulari"></div>
-<div class="toplam-tutar" id="toplamTutar"></div>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBCbKtD6jPE653IYwtTWo2fH93JXX4MN74",
-    authDomain: "kibrissiparissistemi.firebaseapp.com",
-    projectId: "kibrissiparissistemi",
-    storageBucket: "kibrissiparissistemi.firebasestorage.app",
-    messagingSenderId: "263531733235",
-    appId: "1:263531733235:web:82efdf39ed758a22465786",
-    measurementId: "G-JK5S6L90Q5"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  const konteyner = document.getElementById("siparisKutulari");
-  const toplamTutarDiv = document.getElementById("toplamTutar");
-
-  function cikisYap() {
-    localStorage.removeItem("girisYapildi");
-    window.location.href = "admin-login.html";
-  }
-
-  document.getElementById("arama").addEventListener("input", filtrele);
-  document.getElementById("tarih1").addEventListener("change", filtrele);
-  document.getElementById("tarih2").addEventListener("change", filtrele);
-
-  function filtrele() {
-    const aranan = document.getElementById("arama").value.toLowerCase();
-    const t1 = new Date(document.getElementById("tarih1").value);
-    const t2 = new Date(document.getElementById("tarih2").value);
-    const kartlar = document.querySelectorAll(".siparis-kart");
-
-    kartlar.forEach(kart => {
-      const icerik = kart.innerText.toLowerCase();
-      const tarihStr = kart.getAttribute("data-tarih");
-      const tarih = new Date(tarihStr);
-      const uygunTarih = (!isNaN(t1) ? tarih >= t1 : true) && (!isNaN(t2) ? tarih <= t2 : true);
-      kart.style.display = icerik.includes(aranan) && uygunTarih ? "block" : "none";
-    });
-  }
-
-  function siparisleriGetir() {
-    db.collection("siparisler").onSnapshot(snapshot => {
-      konteyner.innerHTML = "";
-      let toplam = 0;
-
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        const tarihStr = d.tarih || new Date().toISOString().split("T")[0];
-        const fiyat = parseFloat(d.ucret) || 0;
-        toplam += fiyat;
-
-        const div = document.createElement("div");
-        div.className = "siparis-kart";
-        div.setAttribute("data-tarih", tarihStr);
-
-        div.innerHTML = `
-          <p><strong>📦 Sipariş:</strong> ${d.siparisKodu}</p>
-          <p><strong>🔗 Ürün:</strong> <a href="${d.urunLink}" target="_blank">Linke Git</a></p>
-          <p><strong>💰 Fiyat:</strong> ${d.ucret} ₺</p>
-          <p><strong>📁 Kategori:</strong> ${d.kategori}</p>
-          <p><strong>🚚 Teslimat:</strong> ${d.teslimat}</p>
-          <p><strong>📅 Tarih:</strong> ${tarihStr}</p>
-          <select class="durum-secim" onchange="durumGuncelle('${doc.id}', this.value)">
-            <option ${d.durum === "Hazırlanıyor" ? "selected" : ""}>Hazırlanıyor</option>
-            <option ${d.durum === "Kargoda" ? "selected" : ""}>Kargoda</option>
-            <option ${d.durum === "Teslim Edildi" ? "selected" : ""}>Teslim Edildi</option>
-          </select>
-          <br><button class="sil" onclick="sil('${doc.id}')">Sil</button>
-        `;
-
-        konteyner.appendChild(div);
-      });
-      toplamTutarDiv.textContent = `💳 Toplam Tutar: ${toplam.toFixed(2)} ₺`;
-    });
-  }
-
-  function durumGuncelle(id, durum) {
-    db.collection("siparisler").doc(id).update({ durum });
-  }
-
-  function sil(id) {
-    if (confirm("Bu siparişi silmek istediğinize emin misiniz?")) {
-      db.collection("siparisler").doc(id).delete();
+  <script>
+    if (localStorage.getItem("girisYapildi") !== "true") {
+      window.location.href = "admin-login.html";
     }
-  }
+  </script>
 
-  document.querySelector(".excel-butonu").addEventListener("click", function () {
-    const kartlar = document.querySelectorAll(".siparis-kart");
-    const veri = [];
+  <button class="cikis-btn" onclick="cikisYap()">Çıkış Yap</button>
+  <h2>📋 Sipariş Listesi</h2>
 
-    kartlar.forEach(kart => {
-      if (kart.style.display === "none") return;
-      const satir = {
-        Sipariş: kart.querySelector("strong").nextSibling.textContent.trim(),
-        Fiyat: kart.innerText.match(/Fiyat: (\d+)/)?.[1] + " ₺" || "",
-        Kategori: kart.innerText.match(/Kategori: (.+)/)?.[1] || "",
-        Teslimat: kart.innerText.match(/Teslimat: (.+)/)?.[1] || "",
-        Tarih: kart.getAttribute("data-tarih")
-      };
-      veri.push(satir);
+  <div class="arama-panel">
+    <input type="text" id="arama" placeholder="🔍 Sipariş ara...">
+    <input type="date" id="tarih1">
+    <input type="date" id="tarih2">
+    <button class="excel-butonu">📤 Excel’e Aktar</button>
+    <div id="toplamTutar">Toplam: 0 ₺</div>
+  </div>
+
+  <div id="siparisAlani"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBCbKtD6jPE653IYwtTWo2fH93JXX4MN74",
+      authDomain: "kibrissiparissistemi.firebaseapp.com",
+      projectId: "kibrissiparissistemi",
+      storageBucket: "kibrissiparissistemi.firebasestorage.app",
+      messagingSenderId: "263531733235",
+      appId: "1:263531733235:web:82efdf39ed758a22465786",
+      measurementId: "G-JK5S6L90Q5"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const siparisAlani = document.getElementById("siparisAlani");
+
+    function verileriYukle() {
+      db.collection("siparisler").orderBy("tarih", "desc").onSnapshot(snapshot => {
+        siparisAlani.innerHTML = "";
+        let toplam = 0;
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (!tarihUygunMu(data.tarih)) return;
+
+          toplam += parseFloat(data.ucret || 0);
+
+          const kart = document.createElement("div");
+          kart.className = "siparis-kart";
+          kart.innerHTML = `
+            <strong>Kod:</strong> ${data.siparisKodu || "-"}<br>
+            <strong>Link:</strong> <a href="${data.urunLink || "#"}" target="_blank">link</a><br>
+            <strong>Fiyat:</strong> ${data.ucret || 0} ₺<br>
+            <strong>Kategori:</strong> ${data.kategori || "-"}<br>
+            <strong>Teslimat:</strong> ${data.teslimat || "-"}<br>
+            <strong>Durum:</strong>
+            <select onchange="durumGuncelle('${doc.id}', this.value)">
+              <option ${data.durum === "Hazırlanıyor" ? "selected" : ""}>Hazırlanıyor</option>
+              <option ${data.durum === "Yolda" ? "selected" : ""}>Yolda</option>
+              <option ${data.durum === "Teslim Edildi" ? "selected" : ""}>Teslim Edildi</option>
+            </select><br>
+            <button class="sil" onclick="silSiparis('${doc.id}')">Sil</button>
+          `;
+          siparisAlani.appendChild(kart);
+        });
+
+        document.getElementById("toplamTutar").innerText = `Toplam: ${toplam.toFixed(2)} ₺`;
+      });
+    }
+
+    function tarihUygunMu(siparisTarihiStr) {
+      const t1 = document.getElementById("tarih1").value;
+      const t2 = document.getElementById("tarih2").value;
+      if (!t1 && !t2) return true;
+
+      const siparisTarihi = new Date(siparisTarihiStr);
+      const baslangic = t1 ? new Date(t1) : null;
+      const bitis = t2 ? new Date(t2) : null;
+
+      if (baslangic && siparisTarihi < baslangic) return false;
+      if (bitis && siparisTarihi > bitis) return false;
+      return true;
+    }
+
+    function durumGuncelle(id, yeniDurum) {
+      db.collection("siparisler").doc(id).update({ durum: yeniDurum });
+    }
+
+    function silSiparis(id) {
+      if (confirm("Bu siparişi silmek istediğinize emin misiniz?")) {
+        db.collection("siparisler").doc(id).delete();
+      }
+    }
+
+    function cikisYap() {
+      localStorage.removeItem("girisYapildi");
+      window.location.href = "admin-login.html";
+    }
+
+    document.getElementById("arama").addEventListener("input", function () {
+      const aranan = this.value.toLowerCase();
+      const kartlar = document.querySelectorAll(".siparis-kart");
+      kartlar.forEach(kart => {
+        const icerik = kart.innerText.toLowerCase();
+        kart.style.display = icerik.includes(aranan) ? "block" : "none";
+      });
     });
 
-    const ws = XLSX.utils.json_to_sheet(veri);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Siparişler");
-    XLSX.writeFile(wb, "siparisler.xlsx");
-  });
+    document.querySelector(".excel-butonu").addEventListener("click", function () {
+      const kartlar = document.querySelectorAll(".siparis-kart");
+      const data = [];
+      kartlar.forEach(kart => {
+        const satir = {};
+        kart.innerText.split("\n").forEach(item => {
+          const [etiket, deger] = item.split(":");
+          if (etiket && deger) satir[etiket.trim()] = deger.trim();
+        });
+        data.push(satir);
+      });
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Siparişler");
+      XLSX.writeFile(wb, "siparisler.xlsx");
+    });
 
-  siparisleriGetir();
-</script>
+    verileriYukle();
+  </script>
 </body>
 </html>
