@@ -18,7 +18,7 @@
   <h2 style="text-align:center;">Kayıt Ol</h2>
   <form id="kayitFormu">
     <input type="text" id="adSoyad" placeholder="Ad Soyad" required>
-    <input type="email" id="email" placeholder="E-posta">
+    <input type="email" id="email" placeholder="E-posta" required>
     <input type="password" id="sifre" placeholder="Şifre" required>
     <input type="tel" id="telefon" placeholder="Telefon Numarası" required>
     <input type="text" id="adres" placeholder="Adres" required>
@@ -49,28 +49,26 @@
       const adres = document.getElementById("adres").value;
 
       try {
-        let kullanici;
-
-        if (email && sifre) {
-          const sonuc = await auth.createUserWithEmailAndPassword(email, sifre);
-          kullanici = sonuc.user;
-        } else {
-          // E-posta girilmemişse sahte UID ile kayıt
-          kullanici = { uid: "uid_" + Date.now() };
-        }
+        const sonuc = await auth.createUserWithEmailAndPassword(email, sifre);
+        const kullanici = sonuc.user;
 
         await db.collection("uyeler").doc(kullanici.uid).set({
           adSoyad,
           email,
           telefon,
           adres,
+          sifre, // Şifreyi Firestore'a da kaydediyoruz
           kayitTarihi: new Date()
         });
 
         alert("Kayıt başarılı!");
         window.location.href = "confirm.html";
       } catch (error) {
-        alert("Hata: " + error.message);
+        if (error.code === "auth/email-already-in-use") {
+          alert("Bu e-posta zaten kayıtlı. Lütfen giriş yapın.");
+        } else {
+          alert("Hata: " + error.message);
+        }
       }
     });
   </script>
