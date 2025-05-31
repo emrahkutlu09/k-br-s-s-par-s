@@ -47,12 +47,13 @@
           .get();
 
         if (!query.empty) {
-          const user = query.docs[0].data();
-          const adSoyad = user.ad + " " + user.soyad;
-
-          localStorage.setItem("kullaniciAdi", adSoyad);
-          localStorage.setItem("kullaniciEmail", email);
-
+          const userDoc = query.docs[0].data();
+          const kullanici = {
+            ad: userDoc.ad,
+            soyad: userDoc.soyad,
+            email: userDoc.email
+          };
+          localStorage.setItem("kullanici", JSON.stringify(kullanici));
           alert("Giriş başarılı!");
           window.location.href = "index.html";
         } else {
@@ -65,4 +66,3 @@
   </script>
 </body>
 </html>
-
