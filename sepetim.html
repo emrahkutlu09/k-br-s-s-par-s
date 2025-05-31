@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Sepetim - Kıbrıs Sipariş Sistemi</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -65,13 +68,7 @@
   <div class="container">
     <h2>Sepetim</h2>
 
-    <div class="siparis">
-      <p><strong>Sipariş Kodu:</strong> 101-1</p>
-      <p><strong>Ürün Linki:</strong> https://trendyol.com/ürün-linki</p>
-      <p><strong>Kategori:</strong> Mobilya</p>
-      <p><strong>Teslimat Tipi:</strong> Eve Teslim</p>
-      <p><strong>Toplam Ücret:</strong> ₺1700</p>
-    </div>
+    <div class="siparis" id="siparisBilgi"></div>
 
     <label for="adres">Teslimat Adresi:</label>
     <textarea id="adres" rows="4" placeholder="Açık adresinizi buraya yazın..." required></textarea>
@@ -88,20 +85,73 @@
       Alıcı: Emrah Kutlu
     </div>
 
-    <button>Siparişimi Gönder</button>
+    <button onclick="siparisiGonder()">Siparişimi Gönder</button>
   </div>
 
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBCbKtD6jPE653IYwtTWo2fH93JXX4MN74",
+      authDomain: "kibrissiparissistemi.firebaseapp.com",
+      projectId: "kibrissiparissistemi",
+      storageBucket: "kibrissiparissistemi.appspot.com",
+      messagingSenderId: "263531733235",
+      appId: "1:263531733235:web:82efdf39ed758a22465786"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    const siparis = JSON.parse(localStorage.getItem("siparis"));
+    const bilgiDiv = document.getElementById("siparisBilgi");
+
+    if (siparis) {
+      bilgiDiv.innerHTML = `
+        <p><strong>Sipariş Kodu:</strong> ${siparis.siparisKodu}</p>
+        <p><strong>Ürün Linki:</strong> <a href="${siparis.urunLink}" target="_blank">${siparis.urunLink}</a></p>
+        <p><strong>Kategori:</strong> ${siparis.kategori}</p>
+        <p><strong>Teslimat Tipi:</strong> ${siparis.teslimat}</p>
+        <p><strong>Toplam Ücret:</strong> ₺${siparis.toplam}</p>
+      `;
+    } else {
+      bilgiDiv.innerHTML = "<p>Sipariş bilgisi bulunamadı.</p>";
+    }
+
     function ibanGoster() {
       const secim = document.getElementById("odeme").value;
       const kutu = document.getElementById("ibanKutusu");
-      if (secim === "havale") {
-        kutu.style.display = "block";
-      } else {
-        kutu.style.display = "none";
+      kutu.style.display = secim === "havale" ? "block" : "none";
+    }
+
+    function siparisiGonder() {
+      const adres = document.getElementById("adres").value.trim();
+      const odeme = document.getElementById("odeme").value;
+
+      if (!adres || !odeme) {
+        alert("Lütfen tüm alanları doldurunuz.");
+        return;
       }
+
+      auth.onAuthStateChanged((user) => {
+        if (!user) {
+          alert("Giriş yapılmamış. Lütfen giriş yapın.");
+          return;
+        }
+
+        db.collection("siparisler").add({
+          ...siparis,
+          adres,
+          odemeTipi: odeme,
+          kullaniciId: user.uid,
+          zaman: new Date()
+        }).then(() => {
+          alert("✅ Siparişiniz başarıyla alındı.");
+          localStorage.removeItem("siparis");
+          window.location.href = "index.html";
+        }).catch(err => {
+          alert("Hata: " + err.message);
+        });
+      });
     }
   </script>
-
 </body>
 </html>
