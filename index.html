@@ -5,16 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kıbrıs Türkiye Online Alışveriş</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body, html {
-      height: 100%;
-      font-family: 'Segoe UI', sans-serif;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html { height: 100%; font-family: 'Segoe UI', sans-serif; }
 
     .hero {
       background: url('https://images.unsplash.com/photo-1534447677768-be436bb09401?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80') no-repeat center center/cover;
@@ -27,17 +19,11 @@
       text-shadow: 2px 2px 4px #000;
       text-align: center;
       padding: 20px;
+      position: relative;
     }
 
-    .hero h1 {
-      font-size: 3em;
-      margin-bottom: 20px;
-    }
-
-    .hero p {
-      font-size: 1.3em;
-      margin-bottom: 40px;
-    }
+    .hero h1 { font-size: 3em; margin-bottom: 20px; }
+    .hero p { font-size: 1.3em; margin-bottom: 40px; }
 
     .buttons a {
       display: inline-block;
@@ -54,19 +40,45 @@
     .buttons a:hover {
       background-color: #e88b00;
     }
+
+    #kullanici-bilgi {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 1em;
+      background: rgba(0,0,0,0.6);
+      padding: 10px 20px;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
   <div class="hero">
+    <div id="kullanici-bilgi"></div>
     <h1>Türkiye'den Kıbrıs'a Kolay Alışveriş</h1>
     <p>Trendyol, Hepsiburada ve diğer mağazalardan siparişinizi kolayca verin.</p>
-    <div class="buttons">
+    <div class="buttons" id="butonlar">
       <a href="order.html">🛒 Sipariş Ver</a>
       <a href="sepetim.html">🧾 Sepetim</a>
-      <a href="signup.html">🧍 Kayıt Ol</a>
-      <a href="login.html">🔐 Giriş Yap</a>
+      <a href="signup.html" id="kayitOlBtn">🧍 Kayıt Ol</a>
+      <a href="login.html" id="girisYapBtn">🔐 Giriş Yap</a>
       <a href="admin-login.html">🛠️ Admin Panel</a>
     </div>
   </div>
+
+  <script>
+    const kullanici = JSON.parse(localStorage.getItem("kullanici"));
+
+    if (kullanici && kullanici.ad && kullanici.soyad) {
+      const adSoyad = `${kullanici.ad} ${kullanici.soyad}`;
+      document.getElementById("kullanici-bilgi").innerText = `👤 ${adSoyad}`;
+
+      // Giriş ve kayıt butonlarını gizle
+      const kayitBtn = document.getElementById("kayitOlBtn");
+      const girisBtn = document.getElementById("girisYapBtn");
+      if (kayitBtn) kayitBtn.style.display = "none";
+      if (girisBtn) girisBtn.style.display = "none";
+    }
+  </script>
 </body>
 </html>
