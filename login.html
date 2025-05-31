@@ -49,9 +49,9 @@
         if (!query.empty) {
           const userDoc = query.docs[0].data();
           const kullanici = {
-            ad: userDoc.ad,
-            soyad: userDoc.soyad,
-            email: userDoc.email
+            ad: userDoc.ad || "",
+            soyad: userDoc.soyad || "",
+            email: userDoc.email || ""
           };
           localStorage.setItem("kullanici", JSON.stringify(kullanici));
           alert("Giriş başarılı!");
@@ -60,6 +60,7 @@
           alert("E-posta veya şifre hatalı.");
         }
       } catch (error) {
+        console.error("Giriş hatası:", error);
         alert("Hata: " + error.message);
       }
     });
