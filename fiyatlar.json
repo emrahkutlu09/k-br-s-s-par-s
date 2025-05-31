@@ -1,0 +1,15 @@
+{
+  "kategoriler": {
+    "mobilya": 0.7,
+    "elektronik": 0.65,
+    "giyim": 0.5,
+    "kozmetik": 0.5
+  },
+  "adresler": {
+    "Lefkoşa": 100,
+    "Girne": 120,
+    "Gazimağusa": 140,
+    "Güzelyurt": 110,
+    "İskele": 130
+  }
+}
